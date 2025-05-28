@@ -1,8 +1,54 @@
+# Feel Forward Agent
+
+A modular agent implementation using strands-agents.
+
+## Setup
+
+1. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+2. Install dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+## Running Tests
+
+```bash
+pytest tests/
+```
+
+## Usage
+
+```python
+from strands.agent import Agent
+
+# Create an agent
+agent = Agent(name="my_agent")
+
+# Process messages
+response = agent.process_message("Hello!")
+print(response)  # "I am my_agent and I received your message: Hello!"
+```
+
+## Project Structure
+
+- `strands/` - Main package directory
+  - `agent.py` - Core agent implementation
+  - `__init__.py` - Package initialization
+- `tests/` - Test directory
+  - `test_agent.py` - Agent tests
+- `requirements.txt` - Project dependencies
+- `README.md` - This file
+
 # Feel Forward
 
-**Feel Forward** is a self-awareness and decision-making app that helps users calibrate their emotions against real-life scenarios based on their stated preferences. Instead of vaguely saying “I want a great job,” users arrive at something like:
+**Feel Forward** is a self-awareness and decision-making app that helps users calibrate their emotions against real-life scenarios based on their stated preferences. Instead of vaguely saying "I want a great job," users arrive at something like:
 
-> “I’m looking for a senior architect job doing both coding and product development at a mid- to late-stage startup within 30 miles of home, paying $100k+, with excellent healthcare and a 40-hour workweek.”
+> "I'm looking for a senior architect job doing both coding and product development at a mid- to late-stage startup within 30 miles of home, paying $100k+, with excellent healthcare and a 40-hour workweek."
 
 The tool elicits personal preferences, generates realistic scenarios, and prompts emotional responses — producing a digest of what users actually want, not just what they think they want.
 
@@ -42,3 +88,61 @@ This repo includes both the **manual prototype** for prompt-based use and specs 
 ## License
 
 MIT
+
+---
+## Setting up the Virtual Environment
+
+This project uses a Python virtual environment to manage dependencies.
+
+**To set up and activate the virtual environment:**
+
+1.  Run the command: `venv_up`
+2.  This script will:
+    * Create a virtual environment named `venv` if it doesn't exist.
+    * Activate the virtual environment.
+    * Create an empty `requirements.txt` file if it doesn't exist.
+    * Install dependencies listed in `requirements.txt` using `pip3 install -r requirements.txt`.
+    * Ensure the `venv` directory is excluded from Git tracking by adding it to `.gitignore`.
+
+**Managing Dependencies:**
+
+* List your project dependencies in the `requirements.txt` file (one package per line).
+* Install dependencies using: `pip install -r requirements.txt` (this is automatically run by `venv_up` after activation if the file is not empty).
+* To add new dependencies, install them with pip while the virtual environment is active and then update `requirements.txt` using: `pip freeze > requirements.txt`
+
+**Deactivating the Virtual Environment:**
+
+* To exit the virtual environment, run the command: `deactivate`
+
+**Excluding from Git:**
+
+* The `venv` directory is automatically added to `.gitignore` to prevent committing environment-specific files.
+
+---
+## Setting up the Virtual Environment
+
+This project uses a Python virtual environment to manage dependencies.
+
+**To set up and activate the virtual environment:**
+
+1.  Run the command: `venv_up`
+2.  This script will:
+    * Create a virtual environment named `venv` if it doesn't exist.
+    * Activate the virtual environment.
+    * Create an empty `requirements.txt` file if it doesn't exist.
+    * Install dependencies listed in `requirements.txt` using `pip3 install -r requirements.txt`.
+    * Ensure the `venv` directory is excluded from Git tracking by adding it to `.gitignore`.
+
+**Managing Dependencies:**
+
+* List your project dependencies in the `requirements.txt` file (one package per line).
+* Install dependencies using: `pip install -r requirements.txt` (this is automatically run by `venv_up` after activation if the file is not empty).
+* To add new dependencies, install them with pip while the virtual environment is active and then update `requirements.txt` using: `pip freeze > requirements.txt`
+
+**Deactivating the Virtual Environment:**
+
+* To exit the virtual environment, run the command: `deactivate`
+
+**Excluding from Git:**
+
+* The `venv` directory is automatically added to `.gitignore` to prevent committing environment-specific files.
