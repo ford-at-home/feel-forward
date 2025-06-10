@@ -1,0 +1,20 @@
+{
+  "version": "44.0.0",
+  "files": {
+    "6a07af53e11cbeb0f0b0491cda46f55d0d8e02039202c89c33b37a9fd211303b": {
+      "displayName": "BackendStack Template",
+      "source": {
+        "path": "BackendStack.template.json",
+        "packaging": "file"
+      },
+      "destinations": {
+        "current_account-current_region": {
+          "bucketName": "cdk-hnb659fds-assets-${AWS::AccountId}-${AWS::Region}",
+          "objectKey": "6a07af53e11cbeb0f0b0491cda46f55d0d8e02039202c89c33b37a9fd211303b.json",
+          "assumeRoleArn": "arn:${AWS::Partition}:iam::${AWS::AccountId}:role/cdk-hnb659fds-file-publishing-role-${AWS::AccountId}-${AWS::Region}"
+        }
+      }
+    }
+  },
+  "dockerImages": {}
+}

@@ -4,7 +4,7 @@ ifneq (,$(wildcard .env))
     export
 endif
 
-.PHONY: init setup venv install-deps verify run clean help check-prerequisites copy-agent
+.PHONY: init setup venv install-deps verify run clean help check-prerequisites copy-agent infra build push deploy check-aws-prerequisites
 
 # Default target
 .DEFAULT_GOAL := help
@@ -16,6 +16,8 @@ PYTHON := python3
 PIP := pip3
 AWS_REGION ?= us-west-2
 CURRENT_DIR := $(shell pwd)
+INFRA_DIR := infra
+DOCKER_IMAGE := feel-forward
 
 # Help target
 help:
@@ -29,12 +31,71 @@ help:
 	@echo "  clean       - Remove strands directory and all contents"
 	@echo "  check-prerequisites - Check AWS models and GitHub token"
 	@echo "  copy-agent  - Copy agent.py to strands directory"
+	@echo "  infra       - Deploy backend infrastructure to AWS"
+	@echo "  build       - Build Docker image"
+	@echo "  push        - Push Docker image to ECR"
+	@echo "  deploy      - Deploy infrastructure and push image"
 	@echo ""
 	@echo "Usage:"
 	@echo "  make init        # Create directory and initialize"
 	@echo "  make setup       # Complete setup (venv, install dependencies)"
 	@echo "  make run         # Run the agent (requires setup first)"
 	@echo "  make clean       # Remove everything"
+	@echo "  make infra       # Deploy backend infrastructure"
+	@echo "  make deploy      # Full deployment (infra + image)"
+
+# Check AWS prerequisites
+check-aws-prerequisites:
+	@echo "Checking AWS prerequisites..."
+	@if ! command -v aws >/dev/null 2>&1; then \
+		echo "Error: AWS CLI is not installed. Please install it first."; \
+		exit 1; \
+	fi
+	@if ! command -v docker >/dev/null 2>&1; then \
+		echo "Error: Docker is not installed. Please install it first."; \
+		exit 1; \
+	fi
+	@if ! aws sts get-caller-identity >/dev/null 2>&1; then \
+		echo "Error: AWS credentials not configured. Please run 'aws configure'."; \
+		exit 1; \
+	fi
+	@echo "AWS prerequisites verified successfully"
+
+# Deploy infrastructure
+infra: check-aws-prerequisites
+	@echo "Deploying backend infrastructure..."
+	cd $(INFRA_DIR) && \
+	python -m venv .venv && \
+	source .venv/bin/activate && \
+	pip install -r requirements.txt && \
+	cdk deploy \
+		-c domain=feelfwd.app \
+		-c apiDomain=api.feelfwd.app \
+		--require-approval never
+	@echo "Infrastructure deployed successfully!"
+
+# Build Docker image
+build:
+	@echo "Building Docker image..."
+	docker build -t $(DOCKER_IMAGE) .
+	@echo "Docker image built successfully!"
+
+# Push Docker image to ECR
+push: build
+	@echo "Pushing Docker image to ECR..."
+	@REPO_URI=$$(aws cloudformation describe-stacks --stack-name BackendStack --query 'Stacks[0].Outputs[?OutputKey==`repositoryUri`].OutputValue' --output text 2>/dev/null || echo "") && \
+	if [ -z "$$REPO_URI" ]; then \
+		echo "Error: ECR repository not found. Run 'make infra' first."; \
+		exit 1; \
+	fi && \
+	docker tag $(DOCKER_IMAGE):latest $$REPO_URI:latest && \
+	aws ecr get-login-password --region $(AWS_REGION) | docker login --username AWS --password-stdin $$REPO_URI && \
+	docker push $$REPO_URI:latest
+	@echo "Docker image pushed successfully!"
+
+# Full deployment (infrastructure + image)
+deploy: infra push
+	@echo "Deployment complete! API available at https://api.feelfwd.app"
 
 # Initialize strands directory
 init:

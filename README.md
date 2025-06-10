@@ -34,6 +34,7 @@ All endpoints accept and return JSON. Requests exceeding the rate limit return a
 - `models.py` – Pydantic request and response models
 - `strands/` – Phase agents (see `strands/README.md`)
 - `tests/` – Backend tests
+- `infra/` – AWS CDK infrastructure code
 - `PROMPTS.md`, `SPECS.md`, `AI_GUIDE.md` – project documentation
 
 ## Testing
@@ -45,17 +46,34 @@ pytest
 ```
 
 ## Deployment
-Set the environment variable `OPENAI_API_KEY` to enable LLM features. See [DEPLOY.md](DEPLOY.md) for a detailed guide to deploying the backend API and agent stack on AWS. The basic steps are:
 
-1. Build the Docker image.
-2. Create an ECR repository.
-3. Push the image to ECR.
-4. Register an ECS task definition.
-5. Create the ECS cluster and service.
+### Automated Deployment
+
+The easiest way to deploy is using the Makefile:
+
+```bash
+# Deploy infrastructure and push image
+make deploy
+
+# Or deploy step by step
+make infra    # Deploy AWS infrastructure
+make push     # Build and push Docker image
+```
+
+### Manual Deployment
+
+Set the environment variable `OPENAI_API_KEY` to enable LLM features. See [DEPLOY.md](DEPLOY.md) for detailed manual deployment steps.
 
 ## Infrastructure
 
-The `infra/` directory contains an AWS CDK app that provisions Route 53 records and static hosting for the frontend. Run `cdk deploy` as described in `infra/README.md` to bootstrap DNS and hosting automatically.
+The `infra/` directory contains an AWS CDK app that provisions the complete backend infrastructure:
 
-An AI agent handles frontend deployments, while a human collaborator manages DNS and domain records.
+- **ECS Fargate**: Containerized API service with auto-scaling
+- **Application Load Balancer**: Traffic distribution and health checks
+- **ECR Repository**: Docker image storage
+- **Secrets Manager**: Secure storage for OpenAI API key
+- **Route53**: DNS management for api.feelfwd.app
+- **CloudWatch**: Logging and monitoring
+
+Run `make infra` to deploy the infrastructure, or see `infra/README.md` for detailed instructions.
 
