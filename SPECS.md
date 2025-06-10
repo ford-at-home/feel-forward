@@ -2,7 +2,7 @@
 
 ## Overview
 
-Feel Forward helps users gain emotional clarity about their preferences by walking them through a structured LLM-powered workflow. The full system is broken into five phases, powered by modular agents and phasers.
+Feel Forward helps users gain emotional clarity about their preferences by walking them through a structured LLM-powered workflow. The full system is broken into five phases, each implemented as a standalone agent.
 
 ---
 
