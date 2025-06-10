@@ -46,5 +46,4 @@ pytest
 
 ## Deployment Notes
 
-Set the environment variable `OPENAI_API_KEY` to enable LLM features. The code is ready to be containerized and deployed on AWS using your preferred approach (e.g., ECS, Lambda, or EC2).
-
+Set the environment variable `OPENAI_API_KEY` to enable LLM features. The code is ready to be containerized and deployed on AWS using your preferred approach (e.g., ECS, Lambda, or EC2). See DEPLOY.md for step-by-step AWS deployment instructions.
