@@ -1,8 +1,8 @@
 """Phase 0 - Factor discovery logic."""
 from typing import List
 import json
-import os
 
+from .utils import llm_available
 import openai
 
 from models import FactorCategory
@@ -13,8 +13,7 @@ class FactorDiscoveryAgent:
 
     def run(self, topic: str) -> List[FactorCategory]:
         """Return factor categories for the given topic."""
-        if os.getenv("OPENAI_API_KEY"):
-            openai.api_key = os.environ["OPENAI_API_KEY"]
+        if llm_available():
             prompt = (
                 "List decision factors for the topic as JSON with format: "
                 "{\"factors\": [{\"category\": str, \"items\": [str]}]}"
