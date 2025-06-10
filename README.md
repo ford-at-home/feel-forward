@@ -15,6 +15,29 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## Running the API
+
+After installing the dependencies you can launch the FastAPI server:
+
+```bash
+uvicorn api:app --reload
+```
+
+This starts the API locally at `http://localhost:8000`.
+
+## Running the Frontend
+
+The frontend lives in the `frontend/` directory and was bootstrapped with Vite
+and React. To run it in development mode:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The app expects the API server to be running on `http://localhost:8000`.
+
 ## Running Tests
 
 ```bash
