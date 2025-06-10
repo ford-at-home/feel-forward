@@ -52,6 +52,6 @@ Set the environment variable `OPENAI_API_KEY` to enable LLM features. The code i
 
 The `infra/` directory contains an AWS CDK app that provisions Route 53 records and static hosting for the frontend. Run `cdk deploy` as described in `infra/README.md` to bootstrap DNS and hosting automatically.
 
-**Lovable** runs the frontend deployments to keep the frontend stack up to date.
+An AI agent handles frontend deployments, while a human collaborator manages DNS and domain records.
 
 Set the environment variable `OPENAI_API_KEY` to enable LLM features. The code is ready to be containerized and deployed on AWS using your preferred approach (e.g., ECS, Lambda, or EC2). See DEPLOY.md for step-by-step AWS deployment instructions.
