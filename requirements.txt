@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+strands-agents
+strands-agents-tools
+requests
