@@ -1,9 +1,9 @@
 """Phase 2 - Scenario generation."""
 from typing import List
 import json
-import os
 
 import openai
+from .utils import llm_available
 from models import Preference, Scenario
 
 
@@ -11,8 +11,7 @@ class ScenarioBuilderAgent:
     """Generate scenarios from preferences and topic."""
 
     def run(self, preferences: List[Preference], topic: str) -> List[Scenario]:
-        if os.getenv("OPENAI_API_KEY"):
-            openai.api_key = os.environ["OPENAI_API_KEY"]
+        if llm_available():
             prefs_json = json.dumps([p.dict() for p in preferences])
             prompt = (
                 "Using the following preferences JSON generate two scenarios as "

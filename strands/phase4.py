@@ -1,8 +1,9 @@
 """Phase 4 - Insight synthesis."""
 from typing import List
-import os
 import json
+
 import openai
+from .utils import llm_available
 
 from models import Reaction, Preference
 
@@ -11,8 +12,7 @@ class InsightSynthesisAgent:
     """Generate a summary from reactions and preferences."""
 
     def run(self, reactions: List[Reaction], preferences: List[Preference]) -> str:
-        if os.getenv("OPENAI_API_KEY"):
-            openai.api_key = os.environ["OPENAI_API_KEY"]
+        if llm_available():
             prompt = (
                 "Use the reactions and preferences JSON to produce a short summary."
             )

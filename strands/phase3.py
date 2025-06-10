@@ -1,8 +1,9 @@
 """Phase 3 - Reaction logging."""
 from typing import List
-import os
 import json
+
 import openai
+from .utils import llm_available
 
 from models import Reaction
 
@@ -15,8 +16,7 @@ class EmotionalReactionAgent:
 
     def run(self, reaction: Reaction) -> str:
         self._store.append(reaction)
-        if os.getenv("OPENAI_API_KEY"):
-            openai.api_key = os.environ["OPENAI_API_KEY"]
+        if llm_available():
             try:
                 messages = [
                     {

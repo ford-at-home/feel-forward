@@ -4,6 +4,3 @@ venv/
 !.env.example
 
 __pycache__/
-
-frontend/node_modules/
-

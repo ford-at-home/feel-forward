@@ -1,17 +1,16 @@
 """Phase 1 - Preference detailing logic."""
 from typing import List
-import os
 import json
 
 import openai
+from .utils import llm_available
 from models import Preference
 
 class PreferenceDetailAgent:
     """Refine preferences via LLM or echo if unavailable."""
 
     def run(self, preferences: List[Preference]) -> List[Preference]:
-        if os.getenv("OPENAI_API_KEY"):
-            openai.api_key = os.environ["OPENAI_API_KEY"]
+        if llm_available():
             try:
                 messages = [
                     {

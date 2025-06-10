@@ -6,7 +6,6 @@ from typing import Callable
 from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
 from models import (
     Phase0Request, Phase0Response,
@@ -22,7 +21,6 @@ from strands.agent import (
     ScenarioBuilderAgent,
     EmotionalReactionAgent,
     InsightSynthesisAgent,
-    Agent,
 )
 
 app = FastAPI()
@@ -56,12 +54,14 @@ async def http_error_handler(request: Request, exc: HTTPException):
 async def unhandled_exception_handler(request: Request, exc: Exception):
     return JSONResponse(status_code=500, content={"error": True, "errorMessage": "Internal server error"})
 
-# ---- Main endpoints --------------------------------------------------------
+
+# ---- Endpoints -------------------------------------------------------------
 @app.post("/phase0/factors", response_model=Phase0Response)
 async def phase0_factors(request: Phase0Request, _: Callable = Depends(rate_limiter)):
     agent = FactorDiscoveryAgent()
     factors = agent.run(request.topic)
     return Phase0Response(factors=factors)
+
 
 @app.post("/phase1/preferences", response_model=Phase1Response)
 async def phase1_preferences(request: Phase1Request, _: Callable = Depends(rate_limiter)):
@@ -69,31 +69,23 @@ async def phase1_preferences(request: Phase1Request, _: Callable = Depends(rate_
     prefs = agent.run(request.preferences)
     return Phase1Response(preferences=prefs)
 
+
 @app.post("/phase2/scenarios", response_model=Phase2Response)
 async def phase2_scenarios(request: Phase2Request, _: Callable = Depends(rate_limiter)):
     agent = ScenarioBuilderAgent()
     scenarios = agent.run(request.preferences, request.topic)
     return Phase2Response(scenarios=scenarios)
 
+
 @app.post("/phase3/reactions", response_model=Phase3Response)
 async def phase3_reactions(request: Phase3Request, _: Callable = Depends(rate_limiter)):
     agent = EmotionalReactionAgent()
-    status = agent.run(Reaction(**request.dict()))
+    status = agent.run(Reaction(**request.model_dump()))
     return Phase3Response(status=status)
+
 
 @app.post("/phase4/summary", response_model=Phase4Response)
 async def phase4_summary(request: Phase4Request, _: Callable = Depends(rate_limiter)):
     agent = InsightSynthesisAgent()
     summary = agent.run(request.reactions, request.preferences)
     return Phase4Response(summary=summary)
-
-# ---- Utility endpoint (from main) ------------------------------------------
-basic_agent = Agent(name="feel_forward")
-
-class Message(BaseModel):
-    message: str
-
-@app.post("/ask")
-async def ask(msg: Message):
-    reply = basic_agent.process_message(msg.message)
-    return {"response": reply}
