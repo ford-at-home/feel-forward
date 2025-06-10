@@ -15,6 +15,37 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+## Running the API
+
+After installing the dependencies you can launch the FastAPI server:
+
+```bash
+uvicorn api:app --reload
+```
+
+This starts the API locally at `http://localhost:8000`.
+
+## API Endpoints
+
+The backend exposes the following REST endpoints:
+
+- `POST /phase0/factors`
+- `POST /phase1/preferences`
+- `POST /phase2/scenarios`
+- `POST /phase3/reactions`
+- `POST /phase4/summary`
+
+All endpoints accept and return `application/json`. Requests exceeding the
+per‑minute rate limit receive a `429` error. Error responses are returned in
+the format:
+
+```json
+{"error": true, "errorMessage": "Description"}
+```
+
+See `models.py` for the exact request and response schemas.
+
+
 ## Running Tests
 
 ```bash
@@ -36,11 +67,12 @@ print(response)  # "I am my_agent and I received your message: Hello!"
 
 ## Project Structure
 
-- `strands/` - Main package directory
-  - `agent.py` - Core agent implementation
+- `strands/` - Backend logic package
+  - `agent.py` - Agent exports
+  - `phase0.py` … `phase4.py` - Phase logic modules
   - `__init__.py` - Package initialization
-- `tests/` - Test directory
-  - `test_agent.py` - Agent tests
+- `models.py` - Pydantic request/response models
+- `tests/` - Backend tests
 - `requirements.txt` - Project dependencies
 - `README.md` - This file
 
@@ -88,35 +120,6 @@ This repo includes both the **manual prototype** for prompt-based use and specs 
 ## License
 
 MIT
-
----
-## Setting up the Virtual Environment
-
-This project uses a Python virtual environment to manage dependencies.
-
-**To set up and activate the virtual environment:**
-
-1.  Run the command: `venv_up`
-2.  This script will:
-    * Create a virtual environment named `venv` if it doesn't exist.
-    * Activate the virtual environment.
-    * Create an empty `requirements.txt` file if it doesn't exist.
-    * Install dependencies listed in `requirements.txt` using `pip3 install -r requirements.txt`.
-    * Ensure the `venv` directory is excluded from Git tracking by adding it to `.gitignore`.
-
-**Managing Dependencies:**
-
-* List your project dependencies in the `requirements.txt` file (one package per line).
-* Install dependencies using: `pip install -r requirements.txt` (this is automatically run by `venv_up` after activation if the file is not empty).
-* To add new dependencies, install them with pip while the virtual environment is active and then update `requirements.txt` using: `pip freeze > requirements.txt`
-
-**Deactivating the Virtual Environment:**
-
-* To exit the virtual environment, run the command: `deactivate`
-
-**Excluding from Git:**
-
-* The `venv` directory is automatically added to `.gitignore` to prevent committing environment-specific files.
 
 ---
 ## Setting up the Virtual Environment
