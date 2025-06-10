@@ -27,7 +27,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://feel-forward.web.app"],
+    allow_origins=["https://feelfwd.app", "https://www.feelfwd.app"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
