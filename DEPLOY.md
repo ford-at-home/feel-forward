@@ -23,7 +23,7 @@ Future versions will deploy as a full-stack app using AWS.
 |------------------|----------------------------------------|
 | Frontend         | React + Vite                           |
 | Backend API      | FastAPI (Python)                       |
-| Agents           | LangChain or Semantic Kernel           |
+| Agents           | Strands agents library                 |
 | Orchestration    | AWS Lambda + Step Functions (optional) |
 | Storage          | DynamoDB or S3                         |
 | Auth             | Cognito (optional)                     |
