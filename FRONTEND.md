@@ -1,6 +1,7 @@
 # Frontend Integration Guide
 
 This document explains how to connect the React frontend at **feelfwd.app** to the Feel Forward backend deployed on AWS.
+This project relies on an AI automation agent to build and deploy the frontend. A human collaborator manages the domain and DNS configuration. Follow the steps below to keep the environment in sync.
 
 ## Overview
 
@@ -32,12 +33,9 @@ VITE_API_URL=https://api.feelfwd.app
 ```
 
 Use `import.meta.env.VITE_API_URL` when making API calls from the frontend.
+## Automation
 
-## Lovable Automation Agent
-
-"Lovable" is the name of the automation agent responsible for provisioning and maintaining the front‑end stack. It runs the CDK deployment and uploads the latest build to CloudFront.
-
-The frontend application itself does **not** introduce Lovable as a user‑facing character. Instead, Lovable is an internal helper that ensures infrastructure and deployment remain automated.
+The AI agent runs the CDK deployment and uploads the latest build to the hosting bucket. The human maintains DNS records and verifies that the domain points to the CloudFront distribution.
 
 ## Build & Deploy
 
