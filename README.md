@@ -44,9 +44,14 @@ Run the unit tests with:
 pytest
 ```
 
-## Deployment Notes
+## Deployment
+Set the environment variable `OPENAI_API_KEY` to enable LLM features. See [DEPLOY.md](DEPLOY.md) for a detailed guide to deploying the backend API and agent stack on AWS. The basic steps are:
 
-Set the environment variable `OPENAI_API_KEY` to enable LLM features. The code is ready to be containerized and deployed on AWS using your preferred approach (e.g., ECS, Lambda, or EC2).
+1. Build the Docker image.
+2. Create an ECR repository.
+3. Push the image to ECR.
+4. Register an ECS task definition.
+5. Create the ECS cluster and service.
 
 ## Infrastructure
 
@@ -54,4 +59,3 @@ The `infra/` directory contains an AWS CDK app that provisions Route 53 records
 
 An AI agent handles frontend deployments, while a human collaborator manages DNS and domain records.
 
-Set the environment variable `OPENAI_API_KEY` to enable LLM features. The code is ready to be containerized and deployed on AWS using your preferred approach (e.g., ECS, Lambda, or EC2). See DEPLOY.md for step-by-step AWS deployment instructions.
