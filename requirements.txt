@@ -5,3 +5,5 @@ strands-agents-tools
 requests
 pytest
 openai
+aws-cdk-lib>=2.134.0
+constructs>=10.0.0

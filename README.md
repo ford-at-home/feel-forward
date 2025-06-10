@@ -16,7 +16,7 @@ pip install -r requirements.txt
 uvicorn api:app --reload
 ```
 
-The server runs locally at `http://localhost:8000`. CORS is enabled for `https://feel-forward.web.app`.
+The server runs locally at `http://localhost:8000`. CORS is enabled for `https://feelfwd.app` and `https://www.feelfwd.app`.
 
 ## Endpoints
 
@@ -47,4 +47,10 @@ pytest
 ## Deployment Notes
 
 Set the environment variable `OPENAI_API_KEY` to enable LLM features. The code is ready to be containerized and deployed on AWS using your preferred approach (e.g., ECS, Lambda, or EC2).
+
+## Infrastructure
+
+The `infra/` directory contains an AWS CDK app that provisions Route 53 records and static hosting for the frontend. Run `cdk deploy` as described in `infra/README.md` to bootstrap DNS and hosting automatically.
+
+An automation agent named **Lovable** runs this deployment in CI to keep the frontend stack up to date.
 
