@@ -3,4 +3,4 @@ venv/
 .env.*
 !.env.example
 
-frontend/node_modules/
+__pycache__/
