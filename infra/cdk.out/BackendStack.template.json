@@ -505,6 +505,125 @@
     "aws:cdk:path": "BackendStack/FeelForwardCluster/Vpc/VPCGW"
    }
   },
+  "FeelForwardClusterVpcRestrictDefaultSecurityGroupCustomResource0CD79C99": {
+   "Type": "Custom::VpcRestrictDefaultSG",
+   "Properties": {
+    "ServiceToken": {
+     "Fn::GetAtt": [
+      "CustomVpcRestrictDefaultSGCustomResourceProviderHandlerDC833E5E",
+      "Arn"
+     ]
+    },
+    "DefaultSecurityGroupId": {
+     "Fn::GetAtt": [
+      "FeelForwardClusterVpcA15CBA61",
+      "DefaultSecurityGroup"
+     ]
+    },
+    "Account": {
+     "Ref": "AWS::AccountId"
+    }
+   },
+   "UpdateReplacePolicy": "Delete",
+   "DeletionPolicy": "Delete",
+   "Metadata": {
+    "aws:cdk:path": "BackendStack/FeelForwardCluster/Vpc/RestrictDefaultSecurityGroupCustomResource/Default"
+   }
+  },
+  "CustomVpcRestrictDefaultSGCustomResourceProviderRole26592FE0": {
+   "Type": "AWS::IAM::Role",
+   "Properties": {
+    "AssumeRolePolicyDocument": {
+     "Version": "2012-10-17",
+     "Statement": [
+      {
+       "Action": "sts:AssumeRole",
+       "Effect": "Allow",
+       "Principal": {
+        "Service": "lambda.amazonaws.com"
+       }
+      }
+     ]
+    },
+    "ManagedPolicyArns": [
+     {
+      "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+     }
+    ],
+    "Policies": [
+     {
+      "PolicyName": "Inline",
+      "PolicyDocument": {
+       "Version": "2012-10-17",
+       "Statement": [
+        {
+         "Effect": "Allow",
+         "Action": [
+          "ec2:AuthorizeSecurityGroupIngress",
+          "ec2:AuthorizeSecurityGroupEgress",
+          "ec2:RevokeSecurityGroupIngress",
+          "ec2:RevokeSecurityGroupEgress"
+         ],
+         "Resource": [
+          {
+           "Fn::Join": [
+            "",
+            [
+             "arn:aws:ec2:us-east-1:",
+             {
+              "Ref": "AWS::AccountId"
+             },
+             ":security-group/",
+             {
+              "Fn::GetAtt": [
+               "FeelForwardClusterVpcA15CBA61",
+               "DefaultSecurityGroup"
+              ]
+             }
+            ]
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     }
+    ]
+   },
+   "Metadata": {
+    "aws:cdk:path": "BackendStack/Custom::VpcRestrictDefaultSGCustomResourceProvider/Role"
+   }
+  },
+  "CustomVpcRestrictDefaultSGCustomResourceProviderHandlerDC833E5E": {
+   "Type": "AWS::Lambda::Function",
+   "Properties": {
+    "Code": {
+     "S3Bucket": {
+      "Fn::Sub": "cdk-hnb659fds-assets-${AWS::AccountId}-us-east-1"
+     },
+     "S3Key": "7fa1e366ee8a9ded01fc355f704cff92bfd179574e6f9cfee800a3541df1b200.zip"
+    },
+    "Timeout": 900,
+    "MemorySize": 128,
+    "Handler": "__entrypoint__.handler",
+    "Role": {
+     "Fn::GetAtt": [
+      "CustomVpcRestrictDefaultSGCustomResourceProviderRole26592FE0",
+      "Arn"
+     ]
+    },
+    "Runtime": "nodejs22.x",
+    "Description": "Lambda function for removing all inbound/outbound rules from the VPC default security group"
+   },
+   "DependsOn": [
+    "CustomVpcRestrictDefaultSGCustomResourceProviderRole26592FE0"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "BackendStack/Custom::VpcRestrictDefaultSGCustomResourceProvider/Handler",
+    "aws:asset:path": "asset.7fa1e366ee8a9ded01fc355f704cff92bfd179574e6f9cfee800a3541df1b200",
+    "aws:asset:property": "Code"
+   }
+  },
   "FeelForwardLogs4C765279": {
    "Type": "AWS::Logs::LogGroup",
    "Properties": {
@@ -517,131 +636,7 @@
     "aws:cdk:path": "BackendStack/FeelForwardLogs/Resource"
    }
   },
-  "FeelForwardServiceLB793EA0CC": {
-   "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
-   "Properties": {
-    "LoadBalancerAttributes": [
-     {
-      "Key": "deletion_protection.enabled",
-      "Value": "false"
-     }
-    ],
-    "Scheme": "internet-facing",
-    "SecurityGroups": [
-     {
-      "Fn::GetAtt": [
-       "FeelForwardServiceLBSecurityGroupDDA06586",
-       "GroupId"
-      ]
-     }
-    ],
-    "Subnets": [
-     {
-      "Ref": "FeelForwardClusterVpcPublicSubnet1Subnet943A0472"
-     },
-     {
-      "Ref": "FeelForwardClusterVpcPublicSubnet2Subnet06870497"
-     }
-    ],
-    "Type": "application"
-   },
-   "DependsOn": [
-    "FeelForwardClusterVpcPublicSubnet1DefaultRouteCFAD7246",
-    "FeelForwardClusterVpcPublicSubnet1RouteTableAssociation7B485FED",
-    "FeelForwardClusterVpcPublicSubnet2DefaultRoute386ADB33",
-    "FeelForwardClusterVpcPublicSubnet2RouteTableAssociation308DE457"
-   ],
-   "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/LB/Resource"
-   }
-  },
-  "FeelForwardServiceLBSecurityGroupDDA06586": {
-   "Type": "AWS::EC2::SecurityGroup",
-   "Properties": {
-    "GroupDescription": "Automatically created Security Group for ELB BackendStackFeelForwardServiceLB3F9855AD",
-    "SecurityGroupIngress": [
-     {
-      "CidrIp": "0.0.0.0/0",
-      "Description": "Allow from anyone on port 80",
-      "FromPort": 80,
-      "IpProtocol": "tcp",
-      "ToPort": 80
-     }
-    ],
-    "VpcId": {
-     "Ref": "FeelForwardClusterVpcA15CBA61"
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/LB/SecurityGroup/Resource"
-   }
-  },
-  "FeelForwardServiceLBSecurityGrouptoBackendStackFeelForwardServiceSecurityGroupEEC5F7B5800009476B6E": {
-   "Type": "AWS::EC2::SecurityGroupEgress",
-   "Properties": {
-    "Description": "Load balancer to target",
-    "DestinationSecurityGroupId": {
-     "Fn::GetAtt": [
-      "FeelForwardServiceSecurityGroup538CC72B",
-      "GroupId"
-     ]
-    },
-    "FromPort": 8000,
-    "GroupId": {
-     "Fn::GetAtt": [
-      "FeelForwardServiceLBSecurityGroupDDA06586",
-      "GroupId"
-     ]
-    },
-    "IpProtocol": "tcp",
-    "ToPort": 8000
-   },
-   "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/LB/SecurityGroup/to BackendStackFeelForwardServiceSecurityGroupEEC5F7B5:8000"
-   }
-  },
-  "FeelForwardServiceLBPublicListener94D093FE": {
-   "Type": "AWS::ElasticLoadBalancingV2::Listener",
-   "Properties": {
-    "DefaultActions": [
-     {
-      "TargetGroupArn": {
-       "Ref": "FeelForwardServiceLBPublicListenerECSGroupD6439879"
-      },
-      "Type": "forward"
-     }
-    ],
-    "LoadBalancerArn": {
-     "Ref": "FeelForwardServiceLB793EA0CC"
-    },
-    "Port": 80,
-    "Protocol": "HTTP"
-   },
-   "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/LB/PublicListener/Resource"
-   }
-  },
-  "FeelForwardServiceLBPublicListenerECSGroupD6439879": {
-   "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
-   "Properties": {
-    "Port": 80,
-    "Protocol": "HTTP",
-    "TargetGroupAttributes": [
-     {
-      "Key": "stickiness.enabled",
-      "Value": "false"
-     }
-    ],
-    "TargetType": "ip",
-    "VpcId": {
-     "Ref": "FeelForwardClusterVpcA15CBA61"
-    }
-   },
-   "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/LB/PublicListener/ECSGroup/Resource"
-   }
-  },
-  "FeelForwardServiceTaskDefTaskRole21C8AF92": {
+  "FeelForwardTaskDefTaskRole234D7B29": {
    "Type": "AWS::IAM::Role",
    "Properties": {
     "AssumeRolePolicyDocument": {
@@ -658,10 +653,10 @@
     }
    },
    "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/TaskDef/TaskRole/Resource"
+    "aws:cdk:path": "BackendStack/FeelForwardTaskDef/TaskRole/Resource"
    }
   },
-  "FeelForwardServiceTaskDefDCB7A2E6": {
+  "FeelForwardTaskDef2259C11D": {
    "Type": "AWS::ECS::TaskDefinition",
    "Properties": {
     "ContainerDefinitions": [
@@ -729,9 +724,7 @@
          "Ref": "FeelForwardLogs4C765279"
         },
         "awslogs-stream-prefix": "feel-forward",
-        "awslogs-region": {
-         "Ref": "AWS::Region"
-        }
+        "awslogs-region": "us-east-1"
        }
       },
       "Name": "web",
@@ -754,11 +747,11 @@
     "Cpu": "256",
     "ExecutionRoleArn": {
      "Fn::GetAtt": [
-      "FeelForwardServiceTaskDefExecutionRole4E0C1B25",
+      "FeelForwardTaskDefExecutionRoleB2968F60",
       "Arn"
      ]
     },
-    "Family": "BackendStackFeelForwardServiceTaskDef39FC07E3",
+    "Family": "BackendStackFeelForwardTaskDef45064446",
     "Memory": "512",
     "NetworkMode": "awsvpc",
     "RequiresCompatibilities": [
@@ -766,16 +759,16 @@
     ],
     "TaskRoleArn": {
      "Fn::GetAtt": [
-      "FeelForwardServiceTaskDefTaskRole21C8AF92",
+      "FeelForwardTaskDefTaskRole234D7B29",
       "Arn"
      ]
     }
    },
    "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/TaskDef/Resource"
+    "aws:cdk:path": "BackendStack/FeelForwardTaskDef/Resource"
    }
   },
-  "FeelForwardServiceTaskDefExecutionRole4E0C1B25": {
+  "FeelForwardTaskDefExecutionRoleB2968F60": {
    "Type": "AWS::IAM::Role",
    "Properties": {
     "AssumeRolePolicyDocument": {
@@ -792,10 +785,10 @@
     }
    },
    "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/TaskDef/ExecutionRole/Resource"
+    "aws:cdk:path": "BackendStack/FeelForwardTaskDef/ExecutionRole/Resource"
    }
   },
-  "FeelForwardServiceTaskDefExecutionRoleDefaultPolicy9F5FDB1F": {
+  "FeelForwardTaskDefExecutionRoleDefaultPolicy5537ABFF": {
    "Type": "AWS::IAM::Policy",
    "Properties": {
     "PolicyDocument": {
@@ -803,8 +796,8 @@
       {
        "Action": [
         "ecr:BatchCheckLayerAvailability",
-        "ecr:GetDownloadUrlForLayer",
-        "ecr:BatchGetImage"
+        "ecr:BatchGetImage",
+        "ecr:GetDownloadUrlForLayer"
        ],
        "Effect": "Allow",
        "Resource": {
@@ -834,8 +827,8 @@
       },
       {
        "Action": [
-        "secretsmanager:GetSecretValue",
-        "secretsmanager:DescribeSecret"
+        "secretsmanager:DescribeSecret",
+        "secretsmanager:GetSecretValue"
        ],
        "Effect": "Allow",
        "Resource": {
@@ -845,18 +838,18 @@
      ],
      "Version": "2012-10-17"
     },
-    "PolicyName": "FeelForwardServiceTaskDefExecutionRoleDefaultPolicy9F5FDB1F",
+    "PolicyName": "FeelForwardTaskDefExecutionRoleDefaultPolicy5537ABFF",
     "Roles": [
      {
-      "Ref": "FeelForwardServiceTaskDefExecutionRole4E0C1B25"
+      "Ref": "FeelForwardTaskDefExecutionRoleB2968F60"
      }
     ]
    },
    "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/TaskDef/ExecutionRole/DefaultPolicy/Resource"
+    "aws:cdk:path": "BackendStack/FeelForwardTaskDef/ExecutionRole/DefaultPolicy/Resource"
    }
   },
-  "FeelForwardServiceEE0EE6CA": {
+  "FeelForwardService7F265263": {
    "Type": "AWS::ECS::Service",
    "Properties": {
     "Cluster": {
@@ -880,48 +873,47 @@
       "ContainerName": "web",
       "ContainerPort": 8000,
       "TargetGroupArn": {
-       "Ref": "FeelForwardServiceLBPublicListenerECSGroupD6439879"
+       "Ref": "FeelForwardTargetGroup7ACCA0EA"
       }
      }
     ],
     "NetworkConfiguration": {
      "AwsvpcConfiguration": {
-      "AssignPublicIp": "DISABLED",
+      "AssignPublicIp": "ENABLED",
       "SecurityGroups": [
        {
         "Fn::GetAtt": [
-         "FeelForwardServiceSecurityGroup538CC72B",
+         "FeelForwardServiceSecurityGroup38727D59",
          "GroupId"
         ]
        }
       ],
       "Subnets": [
        {
-        "Ref": "FeelForwardClusterVpcPrivateSubnet1Subnet8E64007E"
+        "Ref": "FeelForwardClusterVpcPublicSubnet1Subnet943A0472"
        },
        {
-        "Ref": "FeelForwardClusterVpcPrivateSubnet2Subnet19243333"
+        "Ref": "FeelForwardClusterVpcPublicSubnet2Subnet06870497"
        }
       ]
      }
     },
     "TaskDefinition": {
-     "Ref": "FeelForwardServiceTaskDefDCB7A2E6"
+     "Ref": "FeelForwardTaskDef2259C11D"
     }
    },
    "DependsOn": [
-    "FeelForwardServiceLBPublicListenerECSGroupD6439879",
-    "FeelForwardServiceLBPublicListener94D093FE",
-    "FeelForwardServiceTaskDefTaskRole21C8AF92"
+    "FeelForwardLBListenerF2C2B4A3",
+    "FeelForwardTaskDefTaskRole234D7B29"
    ],
    "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/Service/Service"
+    "aws:cdk:path": "BackendStack/FeelForwardService/Service"
    }
   },
-  "FeelForwardServiceSecurityGroup538CC72B": {
+  "FeelForwardServiceSecurityGroup38727D59": {
    "Type": "AWS::EC2::SecurityGroup",
    "Properties": {
-    "GroupDescription": "BackendStack/FeelForwardService/Service/SecurityGroup",
+    "GroupDescription": "BackendStack/FeelForwardService/SecurityGroup",
     "SecurityGroupEgress": [
      {
       "CidrIp": "0.0.0.0/0",
@@ -934,40 +926,40 @@
     }
    },
    "DependsOn": [
-    "FeelForwardServiceTaskDefTaskRole21C8AF92"
+    "FeelForwardTaskDefTaskRole234D7B29"
    ],
    "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/Service/SecurityGroup/Resource"
+    "aws:cdk:path": "BackendStack/FeelForwardService/SecurityGroup/Resource"
    }
   },
-  "FeelForwardServiceSecurityGroupfromBackendStackFeelForwardServiceLBSecurityGroupFCFE1D868000D06CEF50": {
+  "FeelForwardServiceSecurityGroupfromBackendStackFeelForwardLBSecurityGroup5689468F80007D7620F8": {
    "Type": "AWS::EC2::SecurityGroupIngress",
    "Properties": {
     "Description": "Load balancer to target",
     "FromPort": 8000,
     "GroupId": {
      "Fn::GetAtt": [
-      "FeelForwardServiceSecurityGroup538CC72B",
+      "FeelForwardServiceSecurityGroup38727D59",
       "GroupId"
      ]
     },
     "IpProtocol": "tcp",
     "SourceSecurityGroupId": {
      "Fn::GetAtt": [
-      "FeelForwardServiceLBSecurityGroupDDA06586",
+      "FeelForwardLBSecurityGroupDA7B46D1",
       "GroupId"
      ]
     },
     "ToPort": 8000
    },
    "DependsOn": [
-    "FeelForwardServiceTaskDefTaskRole21C8AF92"
+    "FeelForwardTaskDefTaskRole234D7B29"
    ],
    "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/Service/SecurityGroup/from BackendStackFeelForwardServiceLBSecurityGroupFCFE1D86:8000"
+    "aws:cdk:path": "BackendStack/FeelForwardService/SecurityGroup/from BackendStackFeelForwardLBSecurityGroup5689468F:8000"
    }
   },
-  "FeelForwardServiceTaskCountTargetC4AA26FE": {
+  "FeelForwardServiceTaskCountTargetDF022119": {
    "Type": "AWS::ApplicationAutoScaling::ScalableTarget",
    "Properties": {
     "MaxCapacity": 3,
@@ -983,7 +975,7 @@
        "/",
        {
         "Fn::GetAtt": [
-         "FeelForwardServiceEE0EE6CA",
+         "FeelForwardService7F265263",
          "Name"
         ]
        }
@@ -994,11 +986,7 @@
      "Fn::Join": [
       "",
       [
-       "arn:",
-       {
-        "Ref": "AWS::Partition"
-       },
-       ":iam::",
+       "arn:aws:iam::",
        {
         "Ref": "AWS::AccountId"
        },
@@ -1010,19 +998,19 @@
     "ServiceNamespace": "ecs"
    },
    "DependsOn": [
-    "FeelForwardServiceTaskDefTaskRole21C8AF92"
+    "FeelForwardTaskDefTaskRole234D7B29"
    ],
    "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/Service/TaskCount/Target/Resource"
+    "aws:cdk:path": "BackendStack/FeelForwardService/TaskCount/Target/Resource"
    }
   },
-  "FeelForwardServiceTaskCountTargetCpuScaling3D344791": {
+  "FeelForwardServiceTaskCountTargetCpuScalingBA3E8F2A": {
    "Type": "AWS::ApplicationAutoScaling::ScalingPolicy",
    "Properties": {
-    "PolicyName": "BackendStackFeelForwardServiceTaskCountTargetCpuScaling4CAD1C94",
+    "PolicyName": "BackendStackFeelForwardServiceTaskCountTargetCpuScalingB4D396D9",
     "PolicyType": "TargetTrackingScaling",
     "ScalingTargetId": {
-     "Ref": "FeelForwardServiceTaskCountTargetC4AA26FE"
+     "Ref": "FeelForwardServiceTaskCountTargetDF022119"
     },
     "TargetTrackingScalingPolicyConfiguration": {
      "PredefinedMetricSpecification": {
@@ -1034,10 +1022,141 @@
     }
    },
    "DependsOn": [
-    "FeelForwardServiceTaskDefTaskRole21C8AF92"
+    "FeelForwardTaskDefTaskRole234D7B29"
    ],
    "Metadata": {
-    "aws:cdk:path": "BackendStack/FeelForwardService/Service/TaskCount/Target/CpuScaling/Resource"
+    "aws:cdk:path": "BackendStack/FeelForwardService/TaskCount/Target/CpuScaling/Resource"
+   }
+  },
+  "FeelForwardLBD887B569": {
+   "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+   "Properties": {
+    "LoadBalancerAttributes": [
+     {
+      "Key": "deletion_protection.enabled",
+      "Value": "false"
+     }
+    ],
+    "Scheme": "internet-facing",
+    "SecurityGroups": [
+     {
+      "Fn::GetAtt": [
+       "FeelForwardLBSecurityGroupDA7B46D1",
+       "GroupId"
+      ]
+     }
+    ],
+    "Subnets": [
+     {
+      "Ref": "FeelForwardClusterVpcPublicSubnet1Subnet943A0472"
+     },
+     {
+      "Ref": "FeelForwardClusterVpcPublicSubnet2Subnet06870497"
+     }
+    ],
+    "Type": "application"
+   },
+   "DependsOn": [
+    "FeelForwardClusterVpcPublicSubnet1DefaultRouteCFAD7246",
+    "FeelForwardClusterVpcPublicSubnet1RouteTableAssociation7B485FED",
+    "FeelForwardClusterVpcPublicSubnet2DefaultRoute386ADB33",
+    "FeelForwardClusterVpcPublicSubnet2RouteTableAssociation308DE457"
+   ],
+   "Metadata": {
+    "aws:cdk:path": "BackendStack/FeelForwardLB/Resource"
+   }
+  },
+  "FeelForwardLBSecurityGroupDA7B46D1": {
+   "Type": "AWS::EC2::SecurityGroup",
+   "Properties": {
+    "GroupDescription": "Automatically created Security Group for ELB BackendStackFeelForwardLBC820C02C",
+    "SecurityGroupIngress": [
+     {
+      "CidrIp": "0.0.0.0/0",
+      "Description": "Allow from anyone on port 80",
+      "FromPort": 80,
+      "IpProtocol": "tcp",
+      "ToPort": 80
+     }
+    ],
+    "VpcId": {
+     "Ref": "FeelForwardClusterVpcA15CBA61"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "BackendStack/FeelForwardLB/SecurityGroup/Resource"
+   }
+  },
+  "FeelForwardLBSecurityGrouptoBackendStackFeelForwardServiceSecurityGroupE496196480007C759561": {
+   "Type": "AWS::EC2::SecurityGroupEgress",
+   "Properties": {
+    "Description": "Load balancer to target",
+    "DestinationSecurityGroupId": {
+     "Fn::GetAtt": [
+      "FeelForwardServiceSecurityGroup38727D59",
+      "GroupId"
+     ]
+    },
+    "FromPort": 8000,
+    "GroupId": {
+     "Fn::GetAtt": [
+      "FeelForwardLBSecurityGroupDA7B46D1",
+      "GroupId"
+     ]
+    },
+    "IpProtocol": "tcp",
+    "ToPort": 8000
+   },
+   "Metadata": {
+    "aws:cdk:path": "BackendStack/FeelForwardLB/SecurityGroup/to BackendStackFeelForwardServiceSecurityGroupE4961964:8000"
+   }
+  },
+  "FeelForwardLBListenerF2C2B4A3": {
+   "Type": "AWS::ElasticLoadBalancingV2::Listener",
+   "Properties": {
+    "DefaultActions": [
+     {
+      "TargetGroupArn": {
+       "Ref": "FeelForwardTargetGroup7ACCA0EA"
+      },
+      "Type": "forward"
+     }
+    ],
+    "LoadBalancerArn": {
+     "Ref": "FeelForwardLBD887B569"
+    },
+    "Port": 80,
+    "Protocol": "HTTP"
+   },
+   "Metadata": {
+    "aws:cdk:path": "BackendStack/FeelForwardLB/Listener/Resource"
+   }
+  },
+  "FeelForwardTargetGroup7ACCA0EA": {
+   "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+   "Properties": {
+    "HealthCheckIntervalSeconds": 30,
+    "HealthCheckPath": "/health",
+    "HealthCheckPort": "8000",
+    "HealthCheckProtocol": "HTTP",
+    "HealthCheckTimeoutSeconds": 5,
+    "HealthyThresholdCount": 2,
+    "Port": 8000,
+    "Protocol": "HTTP",
+    "TargetGroupAttributes": [
+     {
+      "Key": "stickiness.enabled",
+      "Value": "false"
+     }
+    ],
+    "TargetType": "ip",
+    "UnhealthyThresholdCount": 2,
+    "VpcId": {
+     "Ref": "FeelForwardClusterVpcA15CBA61"
+    }
+   },
+   "Metadata": {
+    "aws:cdk:path": "BackendStack/FeelForwardTargetGroup/Resource"
    }
   },
   "ApiRecord15755A12": {
@@ -1051,7 +1170,7 @@
         "dualstack.",
         {
          "Fn::GetAtt": [
-          "FeelForwardServiceLB793EA0CC",
+          "FeelForwardLBD887B569",
           "DNSName"
          ]
         }
@@ -1060,7 +1179,7 @@
      },
      "HostedZoneId": {
       "Fn::GetAtt": [
-       "FeelForwardServiceLB793EA0CC",
+       "FeelForwardLBD887B569",
        "CanonicalHostedZoneID"
       ]
      }
@@ -1095,304 +1214,11 @@
   "CDKMetadata": {
    "Type": "AWS::CDK::Metadata",
    "Properties": {
-    "Analytics": "v2:deflate64:H4sIAAAAAAAA/31Sy27bMBD8ltxpNrHRD3DdNDUQpIJk5NBLsKY2ysYUKZBLGwahfy9I+qGkRU87M5xdjpaay/ntrby7gYOfqXY307SVsWFQOwEH/xKdDYxfFzL+tJ6x/W0NitWrmbBljcq6NqkFNchiZaDHQkeByslY42A9sXXH4jyzUXhUDtn3YKBDJ2OTeXIVlAZ4GVc6eEaX9DP8Aa4Dxg343Xd8JUNM1iTDZ8UaBjLoJtqpt0G3J4XltgIbBRq2Oo9d2WBygLmMz4NKtudqJaqw1aSasDWnoBdUp31tUvtVv2pL760iOMfMBwncr6tUnoAfgPEAR1E52qd4l8Frw+gMXgwlyYktmUG99WhYNKiCIz4+OBuG0xL/I9x3Dr3/S16brI9C287L+Gi7S/sZ52d5GYBTLi+Xw6BJ5U97tNB+Aw1GYftpzajBMyltod1mB5luP5fx392u3DfhUx95RnPynPHkfAOuQ77EntBREPQy1rY8Uq6V1aTyVgsaBVxHQWDrFWgynYzX3yMNzJv7qJSycaB2ZLqm9F3nfxDGUdTobXDlF/wVeAg8iurIb9Z8Wci7hVzcvHuimQuGqUdZl/oHYSEbqrgDAAA="
+    "Analytics": "v2:deflate64:H4sIAAAAAAAA/31S227bMAz9lr4rWptgH5BmXRegKAw76MNeBkZmVS6yFIh0gsDwvw+ynDjphj3xnMOLjgjO9fz+Xj/cwZFnpt7NHG11VwmYnYIj/+piaAW/LnT3I7Bg/TN4VKt3f8WWJZoQ66RmVKGolYcGM+0Vmqi7EveBSUI85coz6xWjiSjcgAeLUXfVwFNVRmkA627lWhaMST/D7xAtCG6Ad9/wnTwJBZ8KPivBC5DHeKWNvRXGAxnMr2VYGXCwdcPYVWj9YGCuu7e9SWVvxUoV7daRqdqtH41eUJn2tUntkz5pS+ZgCM42h0QCT+sihVeQZxA8wkkVkQ7J3mXw2gtGj5eC7GRkSxEwHw16URWaNpKcnmNo9+MS/yOsvY3I/Jf+NMi9csGy7l6CvbSfca8IGt2VIX91iEVwZAZvGfUK9ntHZvgxtBLYgCNvdTctOdpxh7dKDpsIZkfeVrlvmn8j9AodsJBxAeotOPCGvD3Mdbecnn8JUD8OuXxEN/y6jljQjzVnfJXPxi7ruKJ9r0rk0MZ0Ty1LaCaaTv6fqSKGA9UYH4FRLZlRKgFL3vaqOMlH8F8W+mGhF3e/mWgWWy/UoC5z/AOx2/6ovgMAAA=="
    },
    "Metadata": {
     "aws:cdk:path": "BackendStack/CDKMetadata/Default"
-   },
-   "Condition": "CDKMetadataAvailable"
-  }
- },
- "Outputs": {
-  "FeelForwardServiceLoadBalancerDNS398043C7": {
-   "Value": {
-    "Fn::GetAtt": [
-     "FeelForwardServiceLB793EA0CC",
-     "DNSName"
-    ]
    }
-  },
-  "FeelForwardServiceServiceURL672545F2": {
-   "Value": {
-    "Fn::Join": [
-     "",
-     [
-      "http://",
-      {
-       "Fn::GetAtt": [
-        "FeelForwardServiceLB793EA0CC",
-        "DNSName"
-       ]
-      }
-     ]
-    ]
-   }
-  }
- },
- "Conditions": {
-  "CDKMetadataAvailable": {
-   "Fn::Or": [
-    {
-     "Fn::Or": [
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "af-south-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-east-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-northeast-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-northeast-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-northeast-3"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-south-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-south-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-southeast-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-southeast-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-southeast-3"
-       ]
-      }
-     ]
-    },
-    {
-     "Fn::Or": [
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ap-southeast-4"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ca-central-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "ca-west-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "cn-north-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "cn-northwest-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-central-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-central-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-north-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-south-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-south-2"
-       ]
-      }
-     ]
-    },
-    {
-     "Fn::Or": [
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-west-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-west-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "eu-west-3"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "il-central-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "me-central-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "me-south-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "sa-east-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "us-east-1"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "us-east-2"
-       ]
-      },
-      {
-       "Fn::Equals": [
-        {
-         "Ref": "AWS::Region"
-        },
-        "us-west-1"
-       ]
-      }
-     ]
-    },
-    {
-     "Fn::Equals": [
-      {
-       "Ref": "AWS::Region"
-      },
-      "us-west-2"
-     ]
-    }
-   ]
   }
  },
  "Parameters": {

@@ -45,15 +45,15 @@ The backend can be deployed to AWS using Docker, Amazon ECR, and ECS Fargate. Th
    ```
 2. **Create an ECR repository** (skip if it already exists)
    ```bash
-   aws ecr create-repository --repository-name feel-forward --region us-west-2
+   aws ecr create-repository --repository-name feel-forward --region us-east-1
    ```
 3. **Push the image to ECR**
    ```bash
    AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-   aws ecr get-login-password --region us-west-2 | \
-   docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com
-   docker tag feel-forward:latest $AWS_ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/feel-forward:latest
-   docker push $AWS_ACCOUNT_ID.dkr.ecr.us-west-2.amazonaws.com/feel-forward:latest
+   aws ecr get-login-password --region us-east-1 | \
+   docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
+   docker tag feel-forward:latest $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/feel-forward:latest
+   docker push $AWS_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/feel-forward:latest
    ```
 4. **Register the ECS task definition** using a file like `ecs-task.json`:
    ```json

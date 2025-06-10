@@ -10,6 +10,7 @@ from aws_cdk import (
     aws_logs as logs,
     Duration,
     RemovalPolicy,
+    Environment,
 )
 from constructs import Construct
 
@@ -63,34 +64,78 @@ class BackendStack(Stack):
         )
 
         # Create Fargate service with load balancer
-        fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
+        task_definition = ecs.FargateTaskDefinition(
+            self,
+            "FeelForwardTaskDef",
+            cpu=256,
+            memory_limit_mib=512,
+        )
+
+        # Add container to task definition
+        container = task_definition.add_container(
+            "web",
+            image=ecs.ContainerImage.from_ecr_repository(repository, "latest"),
+            port_mappings=[ecs.PortMapping(container_port=8000)],
+            environment={
+                "PYTHONUNBUFFERED": "1",
+            },
+            secrets={
+                "OPENAI_API_KEY": ecs.Secret.from_secrets_manager(openai_secret),
+            },
+            logging=ecs.LogDriver.aws_logs(
+                log_group=log_group,
+                stream_prefix="feel-forward",
+            ),
+        )
+
+        fargate_service = ecs.FargateService(
             self,
             "FeelForwardService",
             cluster=cluster,
-            cpu=256,
-            memory_limit_mib=512,
-            desired_count=1,
-            task_image_options=ecs_patterns.ApplicationLoadBalancedTaskImageOptions(
-                image=ecs.ContainerImage.from_ecr_repository(repository, "latest"),
-                container_port=8000,
-                environment={
-                    "PYTHONUNBUFFERED": "1",
-                },
-                secrets={
-                    "OPENAI_API_KEY": ecs.Secret.from_secrets_manager(openai_secret),
-                },
-                log_driver=ecs.LogDriver.aws_logs(
-                    log_group=log_group,
-                    stream_prefix="feel-forward",
-                ),
-            ),
-            public_load_balancer=True,
-            listener_port=80,
-            health_check_grace_period=Duration.seconds(60),
+            task_definition=task_definition,
+            desired_count=1,  # Scale up to 1 task now that image is available
+            assign_public_ip=True,  # Allow public IP for internet access
         )
 
+        # Create Application Load Balancer
+        lb = elbv2.ApplicationLoadBalancer(
+            self,
+            "FeelForwardLB",
+            vpc=cluster.vpc,
+            internet_facing=True,
+        )
+
+        # Create target group
+        target_group = elbv2.ApplicationTargetGroup(
+            self,
+            "FeelForwardTargetGroup",
+            vpc=cluster.vpc,
+            port=8000,
+            protocol=elbv2.ApplicationProtocol.HTTP,
+            target_type=elbv2.TargetType.IP,
+            health_check=elbv2.HealthCheck(
+                path="/health",
+                port="8000",
+                protocol=elbv2.Protocol.HTTP,
+                healthy_threshold_count=2,
+                unhealthy_threshold_count=2,
+                timeout=Duration.seconds(5),
+                interval=Duration.seconds(30),
+            ),
+        )
+
+        # Add listener
+        listener = lb.add_listener(
+            "Listener",
+            port=80,
+            default_target_groups=[target_group],
+        )
+
+        # Attach service to target group
+        fargate_service.attach_to_application_target_group(target_group)
+
         # Configure auto scaling
-        scaling = fargate_service.service.auto_scale_task_count(
+        scaling = fargate_service.auto_scale_task_count(
             max_capacity=3,
             min_capacity=1,
         )
@@ -109,7 +154,7 @@ class BackendStack(Stack):
             zone=zone,
             record_name="api",
             target=route53.RecordTarget.from_alias(
-                targets.LoadBalancerTarget(fargate_service.load_balancer)
+                targets.LoadBalancerTarget(lb)
             ),
         )
 
@@ -124,6 +169,6 @@ class BackendStack(Stack):
 
         # Output important values
         self.repository_uri = repository.repository_uri
-        self.service_url = f"http://{fargate_service.load_balancer.load_balancer_dns_name}"
+        self.service_url = f"http://{lb.load_balancer_dns_name}"
         self.api_url = f"https://{api_domain}"
         self.zone_id = zone.hosted_zone_id 

@@ -4,7 +4,7 @@ ifneq (,$(wildcard .env))
     export
 endif
 
-.PHONY: init setup venv install-deps verify run clean help check-prerequisites copy-agent infra build push deploy check-aws-prerequisites
+.PHONY: init setup venv install-deps verify run clean help check-prerequisites copy-agent infra infra-only build push deploy check-aws-prerequisites bootstrap
 
 # Default target
 .DEFAULT_GOAL := help
@@ -14,7 +14,7 @@ STRANDS_DIR := strands
 VENV_DIR := $(STRANDS_DIR)/venv
 PYTHON := python3
 PIP := pip3
-AWS_REGION ?= us-west-2
+AWS_REGION ?= us-east-1
 CURRENT_DIR := $(shell pwd)
 INFRA_DIR := infra
 DOCKER_IMAGE := feel-forward
@@ -32,17 +32,11 @@ help:
 	@echo "  check-prerequisites - Check AWS models and GitHub token"
 	@echo "  copy-agent  - Copy agent.py to strands directory"
 	@echo "  infra       - Deploy backend infrastructure to AWS"
+	@echo "  infra-only  - Deploy backend infrastructure (without ECS service)"
 	@echo "  build       - Build Docker image"
 	@echo "  push        - Push Docker image to ECR"
 	@echo "  deploy      - Deploy infrastructure and push image"
-	@echo ""
-	@echo "Usage:"
-	@echo "  make init        # Create directory and initialize"
-	@echo "  make setup       # Complete setup (venv, install dependencies)"
-	@echo "  make run         # Run the agent (requires setup first)"
-	@echo "  make clean       # Remove everything"
-	@echo "  make infra       # Deploy backend infrastructure"
-	@echo "  make deploy      # Full deployment (infra + image)"
+	@echo "  bootstrap   - Bootstrap CDK environment"
 
 # Check AWS prerequisites
 check-aws-prerequisites:
@@ -61,13 +55,39 @@ check-aws-prerequisites:
 	fi
 	@echo "AWS prerequisites verified successfully"
 
+# Bootstrap CDK environment
+bootstrap: check-aws-prerequisites
+	@echo "Bootstrapping CDK environment..."
+	cd $(INFRA_DIR) && \
+	$(PYTHON) -m venv .venv && \
+	source .venv/bin/activate && \
+	$(PIP) install -r requirements.txt && \
+	cdk bootstrap
+	@echo "CDK environment bootstrapped successfully!"
+
+# Deploy infrastructure (without starting ECS service)
+infra-only: check-aws-prerequisites
+	@echo "Deploying backend infrastructure (without ECS service)..."
+	@echo "Setting up CDK Python environment..."
+	cd $(INFRA_DIR) && \
+	$(PYTHON) -m venv .venv && \
+	source .venv/bin/activate && \
+	$(PIP) install -r requirements.txt && \
+	cdk deploy \
+		-c domain=feelfwd.app \
+		-c apiDomain=api.feelfwd.app \
+		--require-approval never \
+		--exclusively
+	@echo "Infrastructure deployed successfully!"
+
 # Deploy infrastructure
 infra: check-aws-prerequisites
 	@echo "Deploying backend infrastructure..."
+	@echo "Setting up CDK Python environment..."
 	cd $(INFRA_DIR) && \
-	python -m venv .venv && \
+	$(PYTHON) -m venv .venv && \
 	source .venv/bin/activate && \
-	pip install -r requirements.txt && \
+	$(PIP) install -r requirements.txt && \
 	cdk deploy \
 		-c domain=feelfwd.app \
 		-c apiDomain=api.feelfwd.app \
@@ -80,12 +100,12 @@ build:
 	docker build -t $(DOCKER_IMAGE) .
 	@echo "Docker image built successfully!"
 
-# Push Docker image to ECR
-push: build
+# Build and push Docker image to ECR
+build-push: build
 	@echo "Pushing Docker image to ECR..."
 	@REPO_URI=$$(aws cloudformation describe-stacks --stack-name BackendStack --query 'Stacks[0].Outputs[?OutputKey==`repositoryUri`].OutputValue' --output text 2>/dev/null || echo "") && \
 	if [ -z "$$REPO_URI" ]; then \
-		echo "Error: ECR repository not found. Run 'make infra' first."; \
+		echo "Error: ECR repository not found. Run 'make infra-only' first."; \
 		exit 1; \
 	fi && \
 	docker tag $(DOCKER_IMAGE):latest $$REPO_URI:latest && \
@@ -93,8 +113,11 @@ push: build
 	docker push $$REPO_URI:latest
 	@echo "Docker image pushed successfully!"
 
-# Full deployment (infrastructure + image)
-deploy: infra push
+# Push Docker image to ECR
+push: build-push
+
+# Full deployment (infrastructure first, then image, then update ECS)
+deploy: infra-only build-push infra
 	@echo "Deployment complete! API available at https://api.feelfwd.app"
 
 # Initialize strands directory

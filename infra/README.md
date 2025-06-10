@@ -30,7 +30,7 @@ REPO_URI=$(aws cloudformation describe-stacks --stack-name BackendStack --query 
 
 # Tag and push the image
 docker tag feel-forward:latest $REPO_URI:latest
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin $REPO_URI
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin $REPO_URI
 docker push $REPO_URI:latest
 ```
 
