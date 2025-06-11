@@ -32,6 +32,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Health check endpoint for load balancer
+@app.get("/health")
+async def health() -> dict:
+    """Return service status for health checks."""
+    return {"status": "ok"}
+
 # ---- Rate limiting ---------------------------------------------------------
 REQUEST_LOG = defaultdict(list)
 RATE = 60
