@@ -7,6 +7,11 @@ from api import app
 
 client = TestClient(app)
 
+def test_health():
+    resp = client.get("/health")
+    assert resp.status_code == 200
+    assert resp.json() == {"status": "ok"}
+
 def test_phase0_factors():
     resp = client.post("/phase0/factors", json={"topic": "choosing a new job"})
     assert resp.status_code == 200
@@ -14,6 +19,17 @@ def test_phase0_factors():
     assert "factors" in data
     assert isinstance(data["factors"], list)
 
+
+def test_phase1_preferences():
+    pref = {
+        "factor": "salary",
+        "importance": 5,
+        "hasLimit": False,
+    }
+    resp = client.post("/phase1/preferences", json={"preferences": [pref]})
+    assert resp.status_code == 200
+    prefs = resp.json()["preferences"]
+    assert prefs[0]["factor"] == "salary"
 
 def test_phase_flow():
     pref = {
@@ -23,6 +39,11 @@ def test_phase_flow():
         "limit": "Must be at least 3 days remote per week",
         "tradeoff": "Would accept slightly lower salary for full remote",
     }
+    # phase 1
+    resp = client.post("/phase1/preferences", json={"preferences": [pref]})
+    assert resp.status_code == 200
+    prefs = resp.json()["preferences"]
+    assert prefs[0]["factor"] == "Remote work flexibility"
     resp = client.post(
         "/phase2/scenarios", json={"preferences": [pref], "topic": "choosing a new job"}
     )
