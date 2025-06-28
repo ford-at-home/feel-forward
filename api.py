@@ -23,7 +23,13 @@ from strands.agent import (
     InsightSynthesisAgent,
 )
 
-app = FastAPI()
+app = FastAPI(
+    title="Feel Forward API",
+    description="Multi-phase self-awareness app that helps users gain emotional clarity about their preferences through a structured LLM-powered workflow.",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
 
 app.add_middleware(
     CORSMiddleware,
@@ -62,35 +68,40 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 
 
 # ---- Endpoints -------------------------------------------------------------
-@app.post("/phase0/factors", response_model=Phase0Response)
+@app.post("/phase0/factors", response_model=Phase0Response, summary="Discover decision factors", 
+          description="Identifies relevant decision variables for a given topic (e.g., job choice, housing)")
 async def phase0_factors(request: Phase0Request, _: Callable = Depends(rate_limiter)):
     agent = FactorDiscoveryAgent()
     factors = agent.run(request.topic)
     return Phase0Response(factors=factors)
 
 
-@app.post("/phase1/preferences", response_model=Phase1Response)
+@app.post("/phase1/preferences", response_model=Phase1Response, summary="Detail preferences",
+          description="Collects detailed information about user preferences, trade-offs, and thresholds")
 async def phase1_preferences(request: Phase1Request, _: Callable = Depends(rate_limiter)):
     agent = PreferenceDetailAgent()
-    prefs = agent.run(request.preferences)
+    prefs = agent.run(request.preferences, request.topic)
     return Phase1Response(preferences=prefs)
 
 
-@app.post("/phase2/scenarios", response_model=Phase2Response)
+@app.post("/phase2/scenarios", response_model=Phase2Response, summary="Generate scenarios",
+          description="Creates realistic decision scenarios based on user preferences")
 async def phase2_scenarios(request: Phase2Request, _: Callable = Depends(rate_limiter)):
     agent = ScenarioBuilderAgent()
     scenarios = agent.run(request.preferences, request.topic)
     return Phase2Response(scenarios=scenarios)
 
 
-@app.post("/phase3/reactions", response_model=Phase3Response)
+@app.post("/phase3/reactions", response_model=Phase3Response, summary="Log emotional reactions",
+          description="Records user's emotional and somatic responses to scenarios")
 async def phase3_reactions(request: Phase3Request, _: Callable = Depends(rate_limiter)):
     agent = EmotionalReactionAgent()
     status = agent.run(Reaction(**request.model_dump()))
     return Phase3Response(status=status)
 
 
-@app.post("/phase4/summary", response_model=Phase4Response)
+@app.post("/phase4/summary", response_model=Phase4Response, summary="Synthesize insights",
+          description="Analyzes emotional patterns and generates insights about user preferences")
 async def phase4_summary(request: Phase4Request, _: Callable = Depends(rate_limiter)):
     agent = InsightSynthesisAgent()
     summary = agent.run(request.reactions, request.preferences)

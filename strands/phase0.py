@@ -22,7 +22,8 @@ class FactorDiscoveryAgent:
                 {"role": "user", "content": f"Topic: {topic}. {prompt}"}
             ]
             try:
-                resp = openai.ChatCompletion.create(
+                client = openai.OpenAI()
+                resp = client.chat.completions.create(
                     model="gpt-3.5-turbo", messages=messages, timeout=10
                 )
                 text = resp.choices[0].message.content

@@ -7,6 +7,7 @@ from aws_cdk import (
     aws_route53 as route53,
     aws_route53_targets as targets,
     aws_elasticloadbalancingv2 as elbv2,
+    aws_certificatemanager as acm,
     aws_logs as logs,
     Duration,
     RemovalPolicy,
@@ -28,6 +29,7 @@ class BackendStack(Stack):
             "HostedZone", 
             zone_name=domain
         )
+
 
         # Create ECR repository for the Docker image
         repository = ecr.Repository(
@@ -124,7 +126,7 @@ class BackendStack(Stack):
             ),
         )
 
-        # Add listener
+        # Add HTTP listener
         listener = lb.add_listener(
             "Listener",
             port=80,
@@ -170,5 +172,5 @@ class BackendStack(Stack):
         # Output important values
         self.repository_uri = repository.repository_uri
         self.service_url = f"http://{lb.load_balancer_dns_name}"
-        self.api_url = f"https://{api_domain}"
+        self.api_url = f"http://{api_domain}"
         self.zone_id = zone.hosted_zone_id 

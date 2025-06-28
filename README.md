@@ -26,6 +26,13 @@ uvicorn api:app --reload
 
 The server runs locally at `http://localhost:8000`. CORS is enabled for `https://feelfwd.app` and `https://www.feelfwd.app`.
 
+## Current Deployment Status
+
+The backend API is currently deployed and accessible at:
+- **Load Balancer**: http://Backen-FeelF-qmJKH0QWgejQ-1692421821.us-east-1.elb.amazonaws.com
+- **API Domain**: https://api.feelfwd.app (DNS propagation may take up to 48 hours)
+- **API Documentation**: https://api.feelfwd.app/docs
+
 ## Deployment
 
 ### Automated Deployment (Recommended)
@@ -68,13 +75,16 @@ aws ecs update-service --cluster feel-forward --service <service-name> --desired
 
 ## Endpoints
 
-- `POST /phase0/factors`
-- `POST /phase1/preferences`
-- `POST /phase2/scenarios`
-- `POST /phase3/reactions`
-- `POST /phase4/summary`
+- `GET /health` - Health check endpoint
+- `GET /docs` - Interactive API documentation (Swagger UI)
+- `GET /openapi.json` - OpenAPI schema
+- `POST /phase0/factors` - Discover decision factors
+- `POST /phase1/preferences` - Detail preferences
+- `POST /phase2/scenarios` - Generate scenarios
+- `POST /phase3/reactions` - Log emotional reactions
+- `POST /phase4/summary` - Synthesize insights
 
-All endpoints accept and return JSON. Requests exceeding the rate limit return a `429` response. See `models.py` for schema details.
+All POST endpoints accept and return JSON. Requests exceeding the rate limit (60/minute per IP) return a `429` response. See `models.py` for schema details.
 
 ## Infrastructure
 
@@ -175,4 +185,12 @@ pytest
 - ECS tasks run in private subnets with NAT gateway
 - Load balancer handles SSL termination
 - CORS configured for specific domains only
+
+## Frontend
+
+The frontend application is maintained in a separate repository and should be deployed to:
+- **Production**: https://feelfwd.app
+- **WWW**: https://www.feelfwd.app (CNAME to root domain)
+
+The backend API is configured to accept CORS requests from these domains. The frontend should be configured to use `https://api.feelfwd.app` as the API endpoint.
 

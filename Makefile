@@ -4,7 +4,7 @@ ifneq (,$(wildcard .env))
     export
 endif
 
-.PHONY: init setup venv install-deps verify run clean help check-prerequisites copy-agent infra infra-only build push deploy check-aws-prerequisites bootstrap
+.PHONY: init setup venv install-deps verify run clean help check-prerequisites copy-agent infra infra-only build push deploy check-aws-prerequisites bootstrap describe-stack describe-services logs demo sessions
 
 # Default target
 .DEFAULT_GOAL := help
@@ -37,6 +37,11 @@ help:
 	@echo "  push        - Push Docker image to ECR"
 	@echo "  deploy      - Deploy infrastructure and push image"
 	@echo "  bootstrap   - Bootstrap CDK environment"
+	@echo "  describe-stack - Check CloudFormation stack status"
+	@echo "  describe-services - Check ECS service status"
+	@echo "  logs        - View CloudWatch logs (live tail)"
+	@echo "  demo        - Launch Feel Forward demo (interactive or quick mode)"
+	@echo "  sessions    - Manage demo session files (list, clean, export)"
 
 # Check AWS prerequisites
 check-aws-prerequisites:
@@ -207,4 +212,79 @@ copy-agent:
 		exit 1; \
 	fi
 	cp agent.py $(STRANDS_DIR)/agent.py
-	@echo "Copied agent.py to $(STRANDS_DIR)/agent.py" 
+	@echo "Copied agent.py to $(STRANDS_DIR)/agent.py"
+
+# Check CloudFormation stack status
+describe-stack:
+	@echo "Checking CloudFormation stack status..."
+	aws cloudformation describe-stacks --stack-name BackendStack --region $(AWS_REGION) --query 'Stacks[0].StackStatus' --output text
+
+# Check ECS service status
+describe-services:
+	@echo "Checking ECS services..."
+	@CLUSTER=$$(aws ecs list-clusters --region $(AWS_REGION) --query 'clusterArns[?contains(@, `feel-forward`)]' --output text | xargs -I {} basename {}) && \
+	if [ -n "$$CLUSTER" ]; then \
+		SERVICE=$$(aws ecs list-services --cluster $$CLUSTER --region $(AWS_REGION) --query 'serviceArns[0]' --output text | xargs -I {} basename {}) && \
+		if [ -n "$$SERVICE" ]; then \
+			aws ecs describe-services --cluster $$CLUSTER --services $$SERVICE --region $(AWS_REGION) --query 'services[0].{DesiredCount:desiredCount,RunningCount:runningCount,Status:status}' --output json; \
+		else \
+			echo "No services found in cluster $$CLUSTER"; \
+		fi \
+	else \
+		echo "No feel-forward cluster found"; \
+	fi
+
+# View CloudWatch logs
+logs:
+	@echo "Fetching recent CloudWatch logs..."
+	@aws logs tail /ecs/feel-forward --follow --region $(AWS_REGION) 2>/dev/null || \
+	echo "No logs found. The service might not have started yet." 
+
+# Launch interactive CLI demo
+demo:
+	@echo "Launching Feel Forward demo..."
+	@if [ ! -d "venv" ]; then \
+		echo "Virtual environment not found. Creating one..."; \
+		python3 -m venv venv; \
+	fi
+	@if [ -t 0 ]; then \
+		echo "Interactive terminal detected - launching full CLI demo"; \
+		source venv/bin/activate && \
+		pip install -q -r requirements.txt && \
+		python3 demo_cli.py; \
+	else \
+		echo "Non-interactive environment - running quick demo"; \
+		source venv/bin/activate && \
+		pip install -q -r requirements.txt && \
+		python3 demo_quick.py; \
+	fi
+
+# Manage demo session files
+sessions:
+	@echo "Feel Forward Session Manager"
+	@echo "Available commands:"
+	@echo "  make sessions-list     - List all session files"
+	@echo "  make sessions-clean    - Clean old session files (keep latest 5)"
+	@echo "  make sessions-export   - Export session summary to markdown"
+	@echo "  make sessions-stats    - Show session statistics"
+
+# Session management sub-commands
+sessions-list:
+	@source venv/bin/activate 2>/dev/null || python3 -m venv venv && source venv/bin/activate && \
+	pip install -q -r requirements.txt && \
+	python3 session_manager.py list
+
+sessions-clean:
+	@source venv/bin/activate 2>/dev/null || python3 -m venv venv && source venv/bin/activate && \
+	pip install -q -r requirements.txt && \
+	python3 session_manager.py clean
+
+sessions-export:
+	@source venv/bin/activate 2>/dev/null || python3 -m venv venv && source venv/bin/activate && \
+	pip install -q -r requirements.txt && \
+	python3 session_manager.py export
+
+sessions-stats:
+	@source venv/bin/activate 2>/dev/null || python3 -m venv venv && source venv/bin/activate && \
+	pip install -q -r requirements.txt && \
+	python3 session_manager.py stats
