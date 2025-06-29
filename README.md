@@ -1,196 +1,198 @@
-# Feel Forward Backend
+# Feel Forward
 
-This repository provides the API for Feel Forward, a multi‑phase self‑awareness app. The FastAPI service exposes five endpoints for each phase of the workflow and relies on optional OpenAI integration.
+Feel Forward is a multi-phase self-awareness app that helps users gain emotional clarity about their preferences through a structured LLM-powered workflow. It guides users through five phases of decision-making, from exploring factors to synthesizing insights, using AI agents to facilitate emotional calibration and pattern recognition.
 
-## Quick Start
-
-### Prerequisites
-
-- **AWS CLI** configured with appropriate credentials
-- **Python 3.11+** (for local development and CDK)
-- **Docker** installed and running
-- **Node.js 20+** (for CDK CLI)
-- **GitHub Token** for Strands SDK (set as `GITHUB_TOKEN` environment variable)
-
-### Local Development
+## 🚀 Quick Start
 
 ```bash
-# Create virtual environment
+# Clone the repository
+git clone https://github.com/your-org/feel-forward.git
+cd feel-forward
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env and add your GITHUB_TOKEN (required) and OPENAI_API_KEY (optional)
+
+# Backend development
+cd backend
 python -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
+uvicorn api:app --reload  # Runs at http://localhost:8000
 
-# Run the API locally
-uvicorn api:app --reload
+# Frontend development
+cd frontend
+npm install
+npm run dev  # Runs at http://localhost:5173
 ```
 
-The server runs locally at `http://localhost:8000`. CORS is enabled for `https://feelfwd.app` and `https://www.feelfwd.app`.
+## 📁 Repository Structure
 
-## Current Deployment Status
+```
+feel-forward/
+├── backend/               # FastAPI backend service
+│   ├── api.py            # Main API application
+│   ├── models.py         # Pydantic data models
+│   ├── strands/          # Phase agent implementations
+│   ├── infra/            # AWS CDK infrastructure
+│   └── tests/            # Backend unit tests
+├── frontend/             # React TypeScript frontend
+│   ├── src/              # Frontend source code
+│   ├── scripts/          # Deployment scripts
+│   └── infra/            # Frontend CDK infrastructure
+├── networking/           # Network configuration and SSL
+│   ├── docs/             # Networking documentation
+│   └── scripts/          # SSL and domain setup scripts
+└── docs/                 # Project documentation
+    ├── api/              # API documentation
+    ├── architecture/     # System design docs
+    ├── deployment/       # Deployment guides
+    └── development/      # Development guides
+```
 
-The backend API is currently deployed and accessible at:
-- **Load Balancer**: http://Backen-FeelF-qmJKH0QWgejQ-1692421821.us-east-1.elb.amazonaws.com
-- **API Domain**: https://api.feelfwd.app (DNS propagation may take up to 48 hours)
-- **API Documentation**: https://api.feelfwd.app/docs
+## 🛠 Key Technologies
 
-## Deployment
+### Backend
+- **Framework**: FastAPI with Pydantic models
+- **AI Integration**: Strands SDK for agent orchestration, OpenAI API (optional)
+- **Infrastructure**: AWS ECS Fargate, ALB, Route53, ECR
+- **IaC**: AWS CDK for infrastructure management
+- **Python**: 3.11+
+
+### Frontend
+- **Framework**: React 18 with TypeScript
+- **Build Tool**: Vite
+- **UI Components**: shadcn/ui with Tailwind CSS
+- **State Management**: React hooks and context
+- **Infrastructure**: AWS S3, CloudFront, Route53
+
+## 🎯 Five-Phase Workflow
+
+1. **Phase 0: Factor Discovery** - Identify decision variables and considerations
+2. **Phase 1: Preference Detailing** - Define preferences, priorities, and trade-offs
+3. **Phase 2: Scenario Generation** - Create realistic decision scenarios
+4. **Phase 3: Emotional Calibration** - Capture emotional responses to scenarios
+5. **Phase 4: Insight Synthesis** - Extract patterns, contradictions, and insights
+
+## 🚢 Deployment
+
+### Prerequisites
+- AWS CLI configured with appropriate credentials
+- Docker installed and running
+- Node.js 20+ and Python 3.11+
+- GitHub Token for Strands SDK
 
 ### Automated Deployment (Recommended)
 
-The easiest way to deploy is using the Makefile:
-
 ```bash
-# Complete deployment (infrastructure + image)
+# Complete deployment for both frontend and backend
 make deploy
 
-# Step-by-step deployment
-make bootstrap    # Bootstrap CDK environment (first time only)
-make infra        # Deploy AWS infrastructure
-make build-push   # Build and push Docker image
+# Or deploy individually:
+make deploy-backend    # Deploy backend infrastructure and service
+make deploy-frontend   # Deploy frontend to S3/CloudFront
 ```
 
 ### Manual Deployment
 
-If you prefer manual control:
+See detailed deployment guides:
+- [Backend Deployment Guide](docs/deployment/backend.md)
+- [Frontend Deployment Guide](docs/deployment/frontend.md)
+- [Domain Setup Guide](docs/deployment/domain-setup.md)
+
+## 🌐 Production URLs
+
+- **Frontend**: https://feelfwd.app
+- **API**: https://api.feelfwd.app
+- **API Documentation**: https://api.feelfwd.app/docs
+
+## 🧪 Testing
 
 ```bash
-# 1. Bootstrap CDK (first time only)
-cd infra
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-cdk bootstrap
-
-# 2. Deploy infrastructure
-cdk deploy -c domain=feelfwd.app -c apiDomain=api.feelfwd.app --require-approval never
-
-# 3. Build and push Docker image
-docker build -t feel-forward .
-docker tag feel-forward:latest 418272766513.dkr.ecr.us-east-1.amazonaws.com/feel-forward:latest
-aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 418272766513.dkr.ecr.us-east-1.amazonaws.com
-docker push 418272766513.dkr.ecr.us-east-1.amazonaws.com/feel-forward:latest
-
-# 4. Scale up ECS service (if needed)
-aws ecs update-service --cluster feel-forward --service <service-name> --desired-count 1 --region us-east-1
-```
-
-## Endpoints
-
-- `GET /health` - Health check endpoint
-- `GET /docs` - Interactive API documentation (Swagger UI)
-- `GET /openapi.json` - OpenAPI schema
-- `POST /phase0/factors` - Discover decision factors
-- `POST /phase1/preferences` - Detail preferences
-- `POST /phase2/scenarios` - Generate scenarios
-- `POST /phase3/reactions` - Log emotional reactions
-- `POST /phase4/summary` - Synthesize insights
-
-All POST endpoints accept and return JSON. Requests exceeding the rate limit (60/minute per IP) return a `429` response. See `models.py` for schema details.
-
-## Infrastructure
-
-The `infra/` directory contains an AWS CDK app that provisions the complete backend infrastructure:
-
-- **ECS Fargate**: Containerized API service with auto-scaling (starts with 0 tasks)
-- **Application Load Balancer**: Traffic distribution and health checks
-- **ECR Repository**: Docker image storage
-- **Secrets Manager**: Secure storage for OpenAI API key
-- **Route53**: DNS management for api.feelfwd.app
-- **CloudWatch**: Logging and monitoring
-
-### Key Design Decisions
-
-1. **ECS Service starts with 0 tasks**: Prevents hanging deployments when Docker image doesn't exist yet
-2. **Fargate with public IP**: Allows internet access for the API
-3. **Health check on `/health`**: Ensures service availability
-4. **Auto-scaling**: Scales based on CPU utilization (70% threshold)
-
-## Troubleshooting
-
-### Common Issues
-
-#### 1. Deployment Hangs on ECS Service Creation
-**Symptoms**: Stack stuck in `CREATE_IN_PROGRESS` with "Eventual consistency check initiated"
-**Cause**: ECS service trying to start tasks with non-existent Docker image
-**Solution**: Ensure Docker image is built and pushed before scaling up ECS service
-
-#### 2. Docker Build Fails
-**Symptoms**: "Cannot connect to the Docker daemon"
-**Solution**: Start Docker Desktop and wait for it to fully initialize
-
-#### 3. ECS Tasks Not Starting
-**Symptoms**: No tasks in target group, health checks failing
-**Cause**: Missing network configuration or invalid subnet IDs
-**Solution**: Ensure CDK code includes proper network configuration for Fargate service
-
-#### 4. Regional Conflicts
-**Symptoms**: "Stack in UPDATE_IN_PROGRESS state"
-**Cause**: Multiple stacks in different regions
-**Solution**: Delete conflicting stacks in other regions
-
-#### 5. DNS Not Resolving
-**Symptoms**: `curl: (6) Could not resolve host: api.feelfwd.app`
-**Cause**: DNS propagation delay (can take up to 48 hours)
-**Solution**: Wait for propagation or test via load balancer DNS directly
-
-### Debugging Commands
-
-```bash
-# Check stack status
-aws cloudformation describe-stacks --stack-name BackendStack --region us-east-1
-
-# Check ECS service status
-aws ecs list-services --cluster feel-forward --region us-east-1
-aws ecs describe-services --cluster feel-forward --region us-east-1 --services <service-name>
-
-# Check ECR repository
-aws ecr describe-repositories --repository-names feel-forward --region us-east-1
-
-# Check load balancer
-aws elbv2 describe-load-balancers --region us-east-1 | grep FeelF
-
-# Check target group health
-aws elbv2 describe-target-health --target-group-arn <target-group-arn> --region us-east-1
-
-# Check CloudWatch logs
-aws logs describe-log-groups --log-group-name-prefix "/ecs/feel-forward" --region us-east-1
-```
-
-## Directory Overview
-
-- `api.py` – FastAPI application
-- `models.py` – Pydantic request and response models
-- `strands/` – Phase agents (see `strands/README.md`)
-- `tests/` – Backend tests
-- `infra/` – AWS CDK infrastructure code
-- `PROMPTS.md`, `SPECS.md`, `AI_GUIDE.md` – project documentation
-- `Makefile` – Automated deployment commands
-
-## Testing
-
-Run the unit tests with:
-
-```bash
+# Backend tests
+cd backend
 pytest
+
+# Frontend tests
+cd frontend
+npm run test          # Unit tests
+npm run test:e2e      # End-to-end tests
 ```
 
-## Environment Variables
+## 📝 API Endpoints
 
-- `GITHUB_TOKEN`: Required for Strands SDK
-- `OPENAI_API_KEY`: Optional, enables LLM features
-- `AWS_REGION`: Defaults to us-east-1
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| GET | `/docs` | Interactive API documentation |
+| POST | `/phase0/factors` | Discover decision factors |
+| POST | `/phase1/preferences` | Detail preferences |
+| POST | `/phase2/scenarios` | Generate scenarios |
+| POST | `/phase3/reactions` | Log emotional reactions |
+| POST | `/phase4/summary` | Synthesize insights |
 
-## Security
+All POST endpoints accept and return JSON. Rate limited to 60 requests/minute per IP.
 
-- OpenAI API key stored in AWS Secrets Manager
-- ECS tasks run in private subnets with NAT gateway
-- Load balancer handles SSL termination
-- CORS configured for specific domains only
+## 🎮 Demo System
 
-## Frontend
+Try the interactive CLI demo:
 
-The frontend application is maintained in a separate repository and should be deployed to:
-- **Production**: https://feelfwd.app
-- **WWW**: https://www.feelfwd.app (CNAME to root domain)
+```bash
+cd backend
+make demo  # Launches interactive demo with session management
+```
 
-The backend API is configured to accept CORS requests from these domains. The frontend should be configured to use `https://api.feelfwd.app` as the API endpoint.
+Features:
+- Full workflow walkthrough
+- Session save/resume
+- Export results to markdown
+- Multiple example scenarios
 
+## 🔒 Security
+
+- Environment variables stored in `.env` (never commit!)
+- Secrets managed via AWS Secrets Manager
+- CORS restricted to feelfwd.app domains
+- SSL/TLS via AWS Certificate Manager
+- Rate limiting on all endpoints
+
+## 📚 Documentation
+
+- [Architecture Overview](docs/architecture/overview.md)
+- [API Reference](docs/api/reference.md)
+- [Development Guide](docs/development/setup.md)
+- [Deployment Guide](docs/deployment/overview.md)
+- [Manual Prompts](docs/PROMPTS.md) - Fallback workflow prompts
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## 📄 License
+
+This project is proprietary and confidential.
+
+## 🆘 Troubleshooting
+
+See [Common Issues](docs/deployment/troubleshooting.md) for solutions to:
+- Docker build failures
+- ECS deployment hangs
+- DNS propagation delays
+- CORS errors
+- Rate limiting issues
+
+## 🏗 Infrastructure Design Decisions
+
+1. **ECS Service starts with 0 tasks** - Prevents deployment hangs
+2. **Separate frontend/backend repos** - Independent deployment cycles
+3. **CDK for IaC** - Type-safe infrastructure
+4. **Fargate over EC2** - Serverless container management
+5. **CloudFront for frontend** - Global CDN distribution
+
+---
+
+**Note**: This project requires environment variables. Copy `.env.example` to `.env` and configure your tokens before running.

@@ -13,22 +13,18 @@ __pycache__/
 .Python
 .pytest_cache/
 **/.pytest_cache/
-*.egg-info/
-dist/
-build/
 
-# Environment files
-.env
-.env.*
-!.env.example
-
-# Node.js
+# Node
 node_modules/
 **/node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-*.log
+
+# Environment files
+.env
+.env.*
+!.env.example
 
 # IDE
 .idea/
@@ -36,10 +32,14 @@ yarn-error.log*
 *.swp
 *.swo
 *~
-
-# OS
 .DS_Store
-Thumbs.db
+
+# Build outputs
+dist/
+build/
+*.egg-info/
+frontend/dist/
+frontend/build/
 
 # CDK
 cdk.out/
@@ -47,28 +47,37 @@ cdk.out/
 .cdk.staging/
 cdk.context.json
 
-# Build outputs
-frontend/dist/
-frontend/build/
-backend/dist/
-backend/build/
+# Logs
+logs/
+*.log
 
 # Testing
 coverage/
 .coverage
 htmlcov/
-*.cover
-.hypothesis/
 .tox/
+.hypothesis/
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
 
 # Temporary files
 *.tmp
 *.temp
 .cache/
-tmp/
-temp/
 
-# Analysis files (from reviews)
-*_review_findings.json
-*_analysis.json
-*_analysis.md
+# Git
+.git/
+.gitignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Other
+README.md
+LICENSE
+CHANGELOG.md
+docs/
