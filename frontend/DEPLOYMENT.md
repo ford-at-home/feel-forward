@@ -1,12 +1,12 @@
 # FeelFwd Deployment Guide
 
-This guide covers the deployment pipeline for feelfwd.app using AWS S3, CloudFront, and Route53.
+This guide covers the deployment pipeline for felfwd.app using AWS S3, CloudFront, and Route53.
 
 ## Architecture Overview
 
 - **Frontend**: React/Vite application served from S3 + CloudFront
-- **Backend**: Already deployed at `api.feelfwd.app`
-- **Domain**: `feelfwd.app` (production), `staging.feelfwd.app` (staging)
+- **Backend**: Already deployed at `api.felfwd.app`
+- **Domain**: `felfwd.app` (production), `staging.felfwd.app` (staging)
 - **Infrastructure**: AWS CDK for infrastructure as code
 - **CI/CD**: GitHub Actions for automated deployment
 
@@ -31,7 +31,7 @@ Or create manually:
 CDK_DEFAULT_REGION=us-east-1
 HOSTED_ZONE_ID=Z1234567890ABC
 CERTIFICATE_ARN=arn:aws:acm:us-east-1:123456789012:certificate/12345678-1234-1234-1234-123456789012
-DOMAIN_NAME=feelfwd.app
+DOMAIN_NAME=felfwd.app
 ```
 
 ## Deployment Methods
@@ -84,7 +84,7 @@ HOSTED_ZONE_ID=Z1234567890ABC
 ## Infrastructure Details
 
 ### S3 Configuration
-- **Bucket Name**: `feelfwd-{stage}-website-{account-id}`
+- **Bucket Name**: `feelfwd-{stage}-website-{account-id}` (note: bucket names still use 'feelfwd')
 - **Public Access**: Blocked (CloudFront uses OAC)
 - **Versioning**: Enabled for production
 - **CORS**: Configured for API calls
@@ -108,7 +108,7 @@ HOSTED_ZONE_ID=Z1234567890ABC
 ### 1. Route53 Hosted Zone
 Create a hosted zone for your domain:
 ```bash
-aws route53 create-hosted-zone --name feelfwd.app --caller-reference $(date +%s)
+aws route53 create-hosted-zone --name felfwd.app --caller-reference $(date +%s)
 ```
 
 Update your domain registrar's nameservers to point to Route53.
@@ -118,8 +118,8 @@ Request a certificate in us-east-1 (required for CloudFront):
 ```bash
 aws acm request-certificate \
   --region us-east-1 \
-  --domain-name feelfwd.app \
-  --subject-alternative-names "*.feelfwd.app" \
+  --domain-name felfwd.app \
+  --subject-alternative-names "*.felfwd.app" \
   --validation-method DNS
 ```
 
@@ -228,7 +228,7 @@ aws s3 ls s3://feelfwd-prod-website-123456789012/
 aws cloudfront get-distribution --id E1234567890ABC
 
 # Test API connectivity
-curl https://api.feelfwd.app/health
+curl https://api.felfwd.app/health
 ```
 
 ## Security Considerations

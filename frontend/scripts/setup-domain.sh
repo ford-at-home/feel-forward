@@ -28,7 +28,7 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-DOMAIN_NAME="feelfwd.app"
+DOMAIN_NAME="felfwd.app"
 REGION="us-east-1" # CloudFront requires certificates in us-east-1
 
 print_status "Setting up domain configuration for $DOMAIN_NAME"
@@ -99,12 +99,12 @@ DOMAIN_NAME=$DOMAIN_NAME
 $(if [[ -n "$CERTIFICATE_ARN" ]]; then echo "CERTIFICATE_ARN=$CERTIFICATE_ARN"; else echo "# CERTIFICATE_ARN="; fi)
 
 # API Configuration
-VITE_API_URL=https://api.feelfwd.app
+VITE_API_URL=https://api.felfwd.app
 
 # Stage-specific overrides
 # For staging deployment, uncomment and modify:
 # HOSTED_ZONE_ID_STAGING=$HOSTED_ZONE_ID
-# DOMAIN_NAME_STAGING=staging.feelfwd.app
+# DOMAIN_NAME_STAGING=staging.felfwd.app
 # CERTIFICATE_ARN_STAGING=$CERTIFICATE_ARN
 EOF
 

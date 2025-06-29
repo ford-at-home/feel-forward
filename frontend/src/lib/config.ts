@@ -14,12 +14,12 @@ export interface AppConfig {
 // Get configuration from environment variables
 export const getConfig = (): AppConfig => {
   const config: AppConfig = {
-    apiUrl: import.meta.env.VITE_API_URL || 'https://api.feelfwd.app',
+    apiUrl: import.meta.env.VITE_API_URL || 'https://api.felfwd.app',
     appName: import.meta.env.VITE_APP_NAME || 'Feel Forward Flow',
     appVersion: import.meta.env.VITE_APP_VERSION || '1.0.0',
     environment: (import.meta.env.VITE_APP_ENVIRONMENT as 'development' | 'production') || 'production',
-    domain: import.meta.env.VITE_DOMAIN || 'feelfwd.app',
-    baseUrl: import.meta.env.VITE_BASE_URL || 'https://feelfwd.app',
+    domain: import.meta.env.VITE_DOMAIN || 'felfwd.app',
+    baseUrl: import.meta.env.VITE_BASE_URL || 'https://felfwd.app',
     enableDevtools: import.meta.env.VITE_ENABLE_DEVTOOLS === 'true',
     enableLogging: import.meta.env.VITE_ENABLE_LOGGING === 'true',
   };

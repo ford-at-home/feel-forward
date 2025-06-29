@@ -12,7 +12,7 @@ new FeelFwdWebsiteStack(app, 'FeelFwdProdStack', {
     region: process.env.CDK_DEFAULT_REGION || 'us-east-1', // CloudFront requires certificates in us-east-1
   },
   stage: 'prod',
-  domainName: 'feelfwd.app',
+  domainName: 'felfwd.app',
   certificateArn: process.env.CERTIFICATE_ARN, // Will need to be provided
   hostedZoneId: process.env.HOSTED_ZONE_ID,   // Will need to be provided
 });
@@ -24,7 +24,7 @@ new FeelFwdWebsiteStack(app, 'FeelFwdStagingStack', {
     region: process.env.CDK_DEFAULT_REGION || 'us-east-1',
   },
   stage: 'staging',
-  domainName: 'staging.feelfwd.app',
+  domainName: 'staging.felfwd.app',
   certificateArn: process.env.CERTIFICATE_ARN,
   hostedZoneId: process.env.HOSTED_ZONE_ID,
 });

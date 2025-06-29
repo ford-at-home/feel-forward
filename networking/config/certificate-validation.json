@@ -1,0 +1,17 @@
+{
+  "Changes": [
+    {
+      "Action": "CREATE",
+      "ResourceRecordSet": {
+        "Name": "_b2d3feb5933c2447d23377dad4f1937e.feelfwd.app.",
+        "Type": "CNAME",
+        "TTL": 300,
+        "ResourceRecords": [
+          {
+            "Value": "_649ee2d0e50fe9f5faa1174b2145a325.xlfgrmvvlj.acm-validations.aws."
+          }
+        ]
+      }
+    }
+  ]
+}

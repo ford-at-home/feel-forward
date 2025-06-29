@@ -15,7 +15,7 @@ This will:
 ## 📋 Prerequisites
 - Node.js 18+
 - AWS CLI configured
-- Domain registered (feelfwd.app)
+- Domain registered (felfwd.app)
 
 ## 🏗️ Deployment Commands
 
@@ -47,7 +47,7 @@ cd infra && npm run deploy:prod
 CDK_DEFAULT_REGION=us-east-1
 HOSTED_ZONE_ID=Z1234567890ABC
 CERTIFICATE_ARN=arn:aws:acm:us-east-1:123456789012:certificate/...
-DOMAIN_NAME=feelfwd.app
+DOMAIN_NAME=felfwd.app
 ```
 
 ### GitHub Secrets
@@ -76,9 +76,9 @@ DOMAIN_NAME=feelfwd.app
 - `.env.example` - Template
 
 ## 🌐 URLs
-- **Production**: https://feelfwd.app
-- **Staging**: https://staging.feelfwd.app  
-- **API**: https://api.feelfwd.app
+- **Production**: https://felfwd.app
+- **Staging**: https://staging.felfwd.app  
+- **API**: https://api.felfwd.app
 
 ## 📖 Documentation
 - `DEPLOYMENT.md` - Complete deployment guide

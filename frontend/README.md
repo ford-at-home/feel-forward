@@ -75,7 +75,7 @@ VITE_API_URL=http://localhost:8000
 
 Create `.env.production` for production:
 ```env
-VITE_API_URL=https://api.feelfwd.app
+VITE_API_URL=https://api.felfwd.app
 ```
 
 ## 🏗 Architecture

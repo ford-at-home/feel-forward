@@ -102,9 +102,9 @@ See detailed deployment guides:
 
 ## 🌐 Production URLs
 
-- **Frontend**: https://feelfwd.app
-- **API**: https://api.feelfwd.app
-- **API Documentation**: https://api.feelfwd.app/docs
+- **Frontend**: https://felfwd.app
+- **API**: https://api.felfwd.app
+- **API Documentation**: https://api.felfwd.app/docs
 
 ## 🧪 Testing
 
@@ -152,7 +152,7 @@ Features:
 
 - Environment variables stored in `.env` (never commit!)
 - Secrets managed via AWS Secrets Manager
-- CORS restricted to feelfwd.app domains
+- CORS restricted to felfwd.app domains
 - SSL/TLS via AWS Certificate Manager
 - Rate limiting on all endpoints
 

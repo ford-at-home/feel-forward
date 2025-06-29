@@ -12,53 +12,64 @@ Feel Forward consists of two main components that need to be deployed and networ
 
 ```
 networking/
-├── docs/                    # Detailed documentation
+├── SUMMARY.md              # 🔥 START HERE - Current deployment status
+├── README.md               # This file - documentation hub
+├── docs/                   # Detailed documentation
 │   ├── architecture.md     # System architecture overview
-│   ├── dns-setup.md        # DNS configuration guide
-│   ├── ssl-certificates.md # SSL/TLS setup guide
-│   ├── deployment-flow.md  # Complete deployment process
+│   ├── dns-setup.md        # Complete DNS configuration guide
+│   ├── deployment-flow.md  # Step-by-step deployment process
 │   └── troubleshooting.md  # Common issues and solutions
 ├── scripts/                # Automation scripts
+│   ├── deploy-with-dns.sh  # Full DNS-aware deployment
+│   ├── quick-deploy.sh     # Quick frontend deployment
 │   ├── ssl-certificate.sh  # SSL certificate setup
 │   ├── deploy-all.sh       # Full stack deployment
-│   ├── health-check.sh     # Service health verification
-│   └── dns-validate.sh     # DNS configuration check
-└── diagrams/              # Architecture diagrams
-    └── network-topology.png
+│   └── health-check.sh     # Service health verification
+├── logs/                   # Deployment history
+│   ├── deployment-status.md     # Latest deployment status
+│   └── deployment-log-manual.md # Manual steps documentation
+└── config/                 # Configuration files
+    └── certificate-validation.json # ACM validation record
 ```
 
-## Quick Start
+## 🔥 Quick Start - CURRENT STATUS
 
-### Prerequisites
-- AWS account with appropriate permissions
-- Domain registered (feelfwd.app)
-- AWS CLI configured
-- Docker installed
-- Node.js 20+ and Python 3.11+
+**📍 Where We Are**: SSL Certificate is PENDING_VALIDATION. Once validated, frontend can be deployed.
 
-### 1. Domain Setup
+### Check Current Status
 ```bash
-# Run domain setup script
-./scripts/setup-domain.sh
+# 1. Check certificate validation status (wait for "ISSUED")
+AWS_PROFILE=personal aws acm describe-certificate --region us-east-1 \
+  --certificate-arn "arn:aws:acm:us-east-1:418272766513:certificate/f769ac60-45eb-497b-9244-1a0bf579cf88" \
+  --query "Certificate.Status" --output text
 
-# Or manually configure Route53
-aws route53 create-hosted-zone --name feelfwd.app
+# 2. Once ISSUED, deploy frontend
+cd networking
+./quick-deploy.sh
 ```
 
-### 2. SSL Certificates
-```bash
-# Generate SSL certificates for both frontend and API
-./scripts/ssl-certificate.sh
-```
+**📋 See [SUMMARY.md](./SUMMARY.md) for complete current status and next steps.**
 
-### 3. Deploy Infrastructure
-```bash
-# Deploy complete infrastructure
-./scripts/deploy-all.sh
+### Prerequisites ✅ (All Completed)
+- AWS account with appropriate permissions ✅
+- Domain registered (feelfwd.app) ✅
+- AWS CLI configured (profile: personal) ✅
+- Docker installed ✅
+- Node.js 20+ and Python 3.11+ ✅
 
-# Or deploy individually
-make -C ../backend deploy
-make -C ../frontend deploy:prod
+### Deployment Steps
+```bash
+# Option 1: Automated deployment (recommended)
+./scripts/deploy-with-dns.sh
+
+# Option 2: Quick deployment (when certificate is ready)
+./quick-deploy.sh
+
+# Option 3: Manual deployment
+cd ../frontend/infra
+CERTIFICATE_ARN="arn:aws:acm:us-east-1:418272766513:certificate/f769ac60-45eb-497b-9244-1a0bf579cf88" \
+HOSTED_ZONE_ID="Z08949911XTSGIT26ZA8W" \
+npx cdk deploy FeelFwdProdStack
 ```
 
 ## Network Architecture

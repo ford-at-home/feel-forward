@@ -73,7 +73,7 @@ export class FeelFwdWebsiteStack extends cdk.Stack {
           override: true 
         },
         contentSecurityPolicy: { 
-          contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.feelfwd.app;", 
+          contentSecurityPolicy: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:; connect-src 'self' https://api.felfwd.app;", 
           override: true 
         },
       },
@@ -193,7 +193,7 @@ export class FeelFwdWebsiteStack extends cdk.Stack {
     if (hostedZoneId) {
       const hostedZone = route53.HostedZone.fromHostedZoneAttributes(this, `FeelFwdHostedZone-${stage}`, {
         hostedZoneId: hostedZoneId,
-        zoneName: domainName.includes('staging') ? 'feelfwd.app' : domainName,
+        zoneName: domainName.includes('staging') ? 'felfwd.app' : domainName,
       });
 
       new route53.ARecord(this, `FeelFwdAliasRecord-${stage}`, {

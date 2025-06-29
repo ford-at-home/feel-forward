@@ -2,6 +2,9 @@
 
 This document provides a step-by-step guide for deploying the entire Feel Forward application from scratch.
 
+> **📍 Current Status**: Backend deployed ✅, Frontend pending certificate validation ⏳  
+> See [../SUMMARY.md](../SUMMARY.md) for real-time status.
+
 ## Prerequisites Checklist
 
 - [ ] AWS account with administrative access
